@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCoreArchTemplate.GCommon\AutoServiceCenter.GCommon.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.GCommon\AutoServiceCenter.GCommon.csproj" />
   </ItemGroup>
 
 </Project>

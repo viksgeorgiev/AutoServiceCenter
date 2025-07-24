@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoServiceCenter.Data.Models\AutoServiceCenter.Data.Models.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Data\AutoServiceCenter.Data.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.GCommon\AutoServiceCenter.GCommon.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Services.AutoMapping\AutoServiceCenter.Services.AutoMapping.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Services.Common\AutoServiceCenter.Services.Common.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Web.ViewModels\AutoServiceCenter.Web.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>

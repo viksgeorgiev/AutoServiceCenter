@@ -18,8 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCoreArchTemplate.Data\AutoServiceCenter.Data.csproj" />
-    <ProjectReference Include="..\AspNetCoreArchTemplate.Services.Core\AutoServiceCenter.Services.Core.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Web\AutoServiceCenter.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

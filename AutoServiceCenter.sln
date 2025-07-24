@@ -5,37 +5,37 @@ VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Web", "Web", "{93EF63D2-F88C-45A8-A833-653989757DFE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Web.ViewModels", "AspNetCoreArchTemplate.Web.ViewModels\AutoServiceCenter.Web.ViewModels.csproj", "{EBC5652B-743C-44B5-AA37-9E9766564E9C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Web.ViewModels", "AutoServiceCenter.Web.ViewModels\AutoServiceCenter.Web.ViewModels.csproj", "{EBC5652B-743C-44B5-AA37-9E9766564E9C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Web.Infrastructure", "AspNetCoreArchTemplate.Web.Infrastructure\AutoServiceCenter.Web.Infrastructure.csproj", "{44AD3AB1-0527-461B-839F-3EC504658B8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Web.Infrastructure", "AutoServiceCenter.Web.Infrastructure\AutoServiceCenter.Web.Infrastructure.csproj", "{44AD3AB1-0527-461B-839F-3EC504658B8B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{38EA219E-A726-46FD-ACCE-7558656F4116}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Data", "AspNetCoreArchTemplate.Data\AutoServiceCenter.Data.csproj", "{FF166E95-087A-402E-B880-F30C9EF294CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Data", "AutoServiceCenter.Data\AutoServiceCenter.Data.csproj", "{FF166E95-087A-402E-B880-F30C9EF294CB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Data.Models", "AspNetCoreArchTemplate.Data.Models\AutoServiceCenter.Data.Models.csproj", "{FC10D63A-6958-4BA0-BFDC-8A28DD4CA8E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Data.Models", "AutoServiceCenter.Data.Models\AutoServiceCenter.Data.Models.csproj", "{FC10D63A-6958-4BA0-BFDC-8A28DD4CA8E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{1352A304-7786-43CE-915E-8D6FFD4E0E13}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.Core", "AspNetCoreArchTemplate.Services.Core\AutoServiceCenter.Services.Core.csproj", "{82C84DBE-1495-4B25-9650-835780D83CD2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.Core", "AutoServiceCenter.Services.Core\AutoServiceCenter.Services.Core.csproj", "{82C84DBE-1495-4B25-9650-835780D83CD2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.AutoMapping", "AspNetCoreArchTemplate.Services.AutoMapping\AutoServiceCenter.Services.AutoMapping.csproj", "{B6D1C3DF-D6D1-43CF-81DF-543856775A5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.AutoMapping", "AutoServiceCenter.Services.AutoMapping\AutoServiceCenter.Services.AutoMapping.csproj", "{B6D1C3DF-D6D1-43CF-81DF-543856775A5B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.Common", "AspNetCoreArchTemplate.Services.Common\AutoServiceCenter.Services.Common.csproj", "{5966069A-E5EC-4A64-B1A9-C1B9E89EE9F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.Common", "AutoServiceCenter.Services.Common\AutoServiceCenter.Services.Common.csproj", "{5966069A-E5EC-4A64-B1A9-C1B9E89EE9F7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Data.Common", "AspNetCoreArchTemplate.Data.Common\AutoServiceCenter.Data.Common.csproj", "{6DFFFB13-F4BD-4DDF-A923-17CB746B0CE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Data.Common", "AutoServiceCenter.Data.Common\AutoServiceCenter.Data.Common.csproj", "{6DFFFB13-F4BD-4DDF-A923-17CB746B0CE8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F5309D7D-C09A-4F63-9926-BBF0D4623380}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.Core.Tests", "AspNetCoreArchTemplate.Services.Core.Tests\AutoServiceCenter.Services.Core.Tests.csproj", "{3639FFF4-BBDF-409A-9BAE-4E14E0D02107}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Services.Core.Tests", "AutoServiceCenter.Services.Core.Tests\AutoServiceCenter.Services.Core.Tests.csproj", "{3639FFF4-BBDF-409A-9BAE-4E14E0D02107}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Web.Tests", "AspNetCoreArchTemplate.Web.Tests\AutoServiceCenter.Web.Tests.csproj", "{86909A20-72E9-418E-ABA0-7D6738CF8D4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.Web.Tests", "AutoServiceCenter.Web.Tests\AutoServiceCenter.Web.Tests.csproj", "{86909A20-72E9-418E-ABA0-7D6738CF8D4F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.IntegrationTests", "AspNetCoreArchTemplate.IntegrationTests\AutoServiceCenter.IntegrationTests.csproj", "{47C0B2FF-FF13-4D5E-A561-D6FEE0F4E9EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCenter.IntegrationTests", "AutoServiceCenter.IntegrationTests\AutoServiceCenter.IntegrationTests.csproj", "{47C0B2FF-FF13-4D5E-A561-D6FEE0F4E9EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoServiceCenter.Web", "AspNetCoreArchTemplate.Web\AutoServiceCenter.Web.csproj", "{CF06A478-4DBE-44E9-BD23-F6B9699B7ED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoServiceCenter.Web", "AutoServiceCenter.Web\AutoServiceCenter.Web.csproj", "{CF06A478-4DBE-44E9-BD23-F6B9699B7ED7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoServiceCenter.GCommon", "AspNetCoreArchTemplate.GCommon\AutoServiceCenter.GCommon.csproj", "{ECC70A02-DA6C-4D64-86B3-969AE6EB4F60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoServiceCenter.GCommon", "AutoServiceCenter.GCommon\AutoServiceCenter.GCommon.csproj", "{ECC70A02-DA6C-4D64-86B3-969AE6EB4F60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

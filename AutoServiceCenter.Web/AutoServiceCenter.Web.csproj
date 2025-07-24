@@ -16,11 +16,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCoreArchTemplate.Data\AutoServiceCenter.Data.csproj" />
-    <ProjectReference Include="..\AspNetCoreArchTemplate.GCommon\AutoServiceCenter.GCommon.csproj" />
-    <ProjectReference Include="..\AspNetCoreArchTemplate.Services.Core\AutoServiceCenter.Services.Core.csproj" />
-    <ProjectReference Include="..\AspNetCoreArchTemplate.Web.Infrastructure\AutoServiceCenter.Web.Infrastructure.csproj" />
-    <ProjectReference Include="..\AspNetCoreArchTemplate.Web.ViewModels\AutoServiceCenter.Web.ViewModels.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Data\AutoServiceCenter.Data.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.GCommon\AutoServiceCenter.GCommon.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Services.Core\AutoServiceCenter.Services.Core.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Web.Infrastructure\AutoServiceCenter.Web.Infrastructure.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Web.ViewModels\AutoServiceCenter.Web.ViewModels.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Data\AutoServiceCenter.Data.csproj" />
+    <ProjectReference Include="..\AutoServiceCenter.Web.ViewModels\AutoServiceCenter.Web.ViewModels.csproj" />
   </ItemGroup>
 
 </Project>

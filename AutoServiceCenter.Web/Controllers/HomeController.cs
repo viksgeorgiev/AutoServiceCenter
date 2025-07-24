@@ -5,6 +5,7 @@ namespace AutoServiceCenter.Web.Controllers
     using ViewModels;
 
     using Microsoft.AspNetCore.Mvc;
+    using AutoServiceCenter.Web.ViewModels;
 
     public class HomeController : Controller
     {
