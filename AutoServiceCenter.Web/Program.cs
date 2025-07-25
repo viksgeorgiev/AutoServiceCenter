@@ -18,13 +18,17 @@ namespace AutoServiceCenter.Web
                 {
                     options.UseSqlServer(connectionString);
                 });
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
             builder.Services
                 .AddDefaultIdentity<IdentityUser>(options =>
                 {
-                    options.SignIn.RequireConfirmedAccount = true;
+                    options.SignIn.RequireConfirmedAccount = false;
                 })
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
             builder.Services.AddControllersWithViews();
 
             WebApplication? app = builder.Build();
