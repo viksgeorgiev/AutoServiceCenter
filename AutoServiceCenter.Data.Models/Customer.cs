@@ -5,6 +5,7 @@ namespace AutoServiceCenter.Data.Models
 {
     public class Customer : BaseDeletableEntity
     {
+        [Key]
         public Guid Id { get; set; }
 
         [Required] 
