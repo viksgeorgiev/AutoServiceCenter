@@ -1,9 +1,12 @@
-﻿namespace AutoServiceCenter.Data
+﻿using AutoServiceCenter.Data.Configuration;
+using AutoServiceCenter.Data.Models;
+
+namespace AutoServiceCenter.Data
 {
     using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore;
 
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -11,58 +14,21 @@
 
         }
 
+        public virtual DbSet<Appointment> Appointments { get; set; } = null!;
+        public virtual DbSet<Customer> Customers { get; set; } = null!;
+        public virtual DbSet<Mechanic> Mechanics { get; set; } = null!;
+        public virtual DbSet<Service> Services { get; set; } = null!;
+        public virtual DbSet<Vehicle> Vehicles { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new AppointmentConfiguration());
+            modelBuilder.ApplyConfiguration(new CustomerConfiguration());
+            modelBuilder.ApplyConfiguration(new MechanicConfiguration());
+            modelBuilder.ApplyConfiguration(new ServiceConfiguration());
+            modelBuilder.ApplyConfiguration(new VehicleConfiguration());
+
             base.OnModelCreating(modelBuilder);
-
-            // Global query filters for soft delete
-            modelBuilder.Entity<Customer>().HasQueryFilter(e => !e.IsDeleted);
-            modelBuilder.Entity<Mechanic>().HasQueryFilter(e => !e.IsDeleted);
-            modelBuilder.Entity<Vehicle>().HasQueryFilter(e => !e.IsDeleted);
-            modelBuilder.Entity<Appointment>().HasQueryFilter(e => !e.IsDeleted);
-            modelBuilder.Entity<Service>().HasQueryFilter(e => !e.IsDeleted);
-
-            modelBuilder.Entity<Customer>()
-                .HasOne(c => c.User)
-                .WithMany() // IdentityUser has no nav to Customer
-                .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Mechanic>()
-                .HasOne(m => m.User)
-                .WithMany() // IdentityUser has no nav to Mechanic
-                .HasForeignKey(m => m.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Vehicle>()
-                .HasOne(v => v.Customer)
-                .WithMany(c => c.Vehicles)
-                .HasForeignKey(v => v.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Customer)
-                .WithMany(c => c.Appointments)
-                .HasForeignKey(a => a.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Vehicle)
-                .WithMany() // Vehicles don’t need back-nav to appointments
-                .HasForeignKey(a => a.VehicleId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Mechanic)
-                .WithMany(m => m.Appointments)
-                .HasForeignKey(a => a.MechanicId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Service)
-                .WithMany(s => s.Appointments)
-                .HasForeignKey(a => a.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
