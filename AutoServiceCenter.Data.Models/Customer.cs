@@ -1,20 +1,25 @@
-﻿using AutoServiceCenter.Data.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using static AutoServiceCenter.GCommon.ValidationConstants.Customer;
 
-public class Customer
+namespace AutoServiceCenter.Data.Models
 {
-    public Guid Id { get; set; }
+    public class Customer : BaseDeletableEntity
+    {
+        public Guid Id { get; set; }
 
-    
-    public string UserId { get; set; }
+        [Required] 
+        public string UserId { get; set; } = null!;
 
-    public virtual ApplicationUser User { get; set; }
+        public virtual ApplicationUser User { get; set; } = null!;
 
-    
-    public string Address { get; set; }
+        [Required]
+        [MaxLength(AddressMaxLength)]
+        public string Address { get; set; } = null!;
 
-    public ICollection<Vehicle> Vehicles { get; set; } 
-        = new HashSet<Vehicle>();
-    public ICollection<Appointment> Appointments { get; set; } 
-        = new HashSet<Appointment>();
+        public ICollection<Vehicle> Vehicles { get; set; }
+            = new HashSet<Vehicle>();
+
+        public ICollection<Appointment> Appointments { get; set; }
+            = new HashSet<Appointment>();
+    }
 }

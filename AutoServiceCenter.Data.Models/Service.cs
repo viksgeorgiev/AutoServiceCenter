@@ -1,17 +1,23 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static AutoServiceCenter.GCommon.ValidationConstants.Service;
 
-public class Service
+namespace AutoServiceCenter.Data.Models
 {
-    public Guid Id { get; set; }
+    public class Service : BaseDeletableEntity
+    {
+        public Guid Id { get; set; }
 
-    
-    public string Name { get; set; }
+        [Required] 
+        [MaxLength(NameMaxLength)]
+        public string Name { get; set; } = null!;
 
-    public string Description { get; set; }
+        [MaxLength(DescriptionMaxLength)]
+        public string? Description { get; set; }
 
-    
-    public decimal Price { get; set; }
+        [Range(PriceMinValue,PriceMaxValue)]
+        public decimal Price { get; set; }
 
-    public ICollection<Appointment> Appointments { get; set; } 
-        = new HashSet<Appointment>();
+        public ICollection<Appointment> Appointments { get; set; }
+            = new HashSet<Appointment>();
+    }
 }

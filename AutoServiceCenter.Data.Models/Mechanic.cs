@@ -1,20 +1,25 @@
-﻿using AutoServiceCenter.Data.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using static AutoServiceCenter.GCommon.ValidationConstants.Mechanic;
 
-public class Mechanic
+namespace AutoServiceCenter.Data.Models
 {
-    public Guid Id { get; set; }
+    public class Mechanic : BaseDeletableEntity
+    {
+        public Guid Id { get; set; }
 
-    
-    public string UserId { get; set; }
+        [Required]
+        public string UserId { get; set; }
 
-    public virtual ApplicationUser User { get; set; }
+        public virtual ApplicationUser User { get; set; }
 
-    
-    public string Specialization { get; set; }
+        [Required]
+        [MaxLength(SpecializationMaxLength)]
+        public string Specialization { get; set; } = null!;
 
-    public int ExperienceYears { get; set; }
+        [Range(ExperienceYearsMinValue,ExperienceYearsMaxValue)]
+        public int ExperienceYears { get; set; }
 
-    public ICollection<Appointment> Appointments { get; set; } 
-        = new HashSet<Appointment>();
+        public ICollection<Appointment> Appointments { get; set; }
+            = new HashSet<Appointment>();
+    }
 }

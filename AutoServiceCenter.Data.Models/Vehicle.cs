@@ -1,17 +1,30 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static AutoServiceCenter.GCommon.ValidationConstants.Vehicle;
 
-public class Vehicle
+namespace AutoServiceCenter.Data.Models
 {
-    public Guid Id { get; set; }
-    
-    public string Make { get; set; }
-    
-    public string Model { get; set; }
+    public class Vehicle : BaseDeletableEntity
+    {
+        public Guid Id { get; set; }
 
-    public int Year { get; set; }
+        [Required]
+        [MaxLength(MakeMaxLength)]
+        public string Make { get; set; } = null!;
 
-    public string LicensePlate { get; set; }
+        [Required] 
+        [MaxLength(ModelMaxLength)] 
+        public string Model { get; set; } = null!;
 
-    public Guid CustomerId { get; set; }
-    public virtual Customer Customer { get; set; }
+        [Range(YearMinValue,YearMaxValue)]
+        public int Year { get; set; }
+
+        [Required]
+        [MaxLength(LicensePlateMaxLength)]
+        public string LicensePlate { get; set; } = null!;
+
+        [Required]
+        public Guid CustomerId { get; set; }
+
+        public virtual Customer Customer { get; set; } = null!;
+    }
 }
