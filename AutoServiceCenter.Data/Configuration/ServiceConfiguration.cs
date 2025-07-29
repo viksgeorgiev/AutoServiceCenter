@@ -12,6 +12,10 @@ namespace AutoServiceCenter.Data.Configuration
 
             entity
                 .HasQueryFilter(s => s.IsDeleted == false);
+
+            entity
+                .Property(s => s.Price)
+                .HasColumnType("decimal(18,4)");
         }
     }
 }
