@@ -18,7 +18,9 @@ namespace AutoServiceCenter.Web
                 {
                     options.UseSqlServer(connectionString);
                 });
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
             builder.Services
                 .AddDefaultIdentity<IdentityUser>(options =>
                 {
