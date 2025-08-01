@@ -19,12 +19,22 @@ namespace AutoServiceCenter.Web
                     options.UseSqlServer(connectionString);
                 });
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
             builder.Services
                 .AddDefaultIdentity<IdentityUser>(options =>
                 {
-                    options.SignIn.RequireConfirmedAccount = true;
+                    options.SignIn.RequireConfirmedAccount = false;
+
+                    options.Password.RequireDigit = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequiredLength = 2;
+                    options.Password.RequiredUniqueChars = 0;
                 })
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
             builder.Services.AddControllersWithViews();
 
             WebApplication? app = builder.Build();
