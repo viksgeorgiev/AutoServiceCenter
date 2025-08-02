@@ -1,5 +1,5 @@
 using AutoServiceCenter.Data;
-
+using AutoServiceCenter.Data.Seeding.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -64,6 +64,14 @@ namespace AutoServiceCenter.Web
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
+
+            using (IServiceScope scope = app.Services.CreateScope())
+            {
+                ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                UserManager<IdentityUser> userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                RoleManager<IdentityRole> roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                await DataSeed.SeedData(context, userManager, roleManager);
+            }
 
             await app.RunAsync();
         }
