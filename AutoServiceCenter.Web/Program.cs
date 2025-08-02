@@ -13,13 +13,11 @@ namespace AutoServiceCenter.Web
             
             string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
                                       ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            
             builder.Services
                 .AddDbContext<ApplicationDbContext>(options =>
                 {
                     options.UseSqlServer(connectionString);
                 });
-
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services
@@ -44,13 +42,16 @@ namespace AutoServiceCenter.Web
             
             if (app.Environment.IsDevelopment())
             {
+                app.UseDeveloperExceptionPage();
                 app.UseMigrationsEndPoint();
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Home/Error/500");
                 app.UseHsts();
             }
+
+            app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
@@ -60,6 +61,9 @@ namespace AutoServiceCenter.Web
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.MapControllerRoute(
+                name: "areas",
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");

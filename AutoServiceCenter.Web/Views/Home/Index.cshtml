@@ -1,8 +1,22 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Home Page";
+}
+@section Styles {
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+	<div class="row">
+		<div class="col-12 text-center">
+			<h1 class="display-4">Welcome to Auto Service Center</h1>
+			<p class="lead">Your trusted partner for vehicle maintenance and repair services.</p>
+			<hr class="my-4" />
+			<p>Schedule an appointment, manage your vehicles, or explore our services.</p>
+			<a class="btn btn-primary btn-lg" asp-controller="Appointments" asp-action="Index" role="button">View Appointments</a>
+			@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Administrator"))
+			{
+				<a class="btn btn-secondary btn-lg" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" role="button">Admin Dashboard</a>
+			}
+		</div>
+	</div>
 </div>
