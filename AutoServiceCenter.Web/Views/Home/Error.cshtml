@@ -1,0 +1,21 @@
+﻿@model AutoServiceCenter.Web.ViewModels.ErrorViewModel
+@{
+	ViewData["Title"] = "Server Error";
+}
+@section Styles {
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+}
+
+<div class="container mt-5">
+	<div class="row">
+		<div class="col-12 text-center">
+			<h1 class="text-danger">500 - Server Error</h1>
+			<p>Something went wrong on our end. Please try again later.</p>
+			@if (Model.ShowRequestId)
+			{
+				<p><strong>Request ID:</strong> @Model.RequestId</p>
+			}
+			<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Return to Home</a>
+		</div>
+	</div>
+</div>
