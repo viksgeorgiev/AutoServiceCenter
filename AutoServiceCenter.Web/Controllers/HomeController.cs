@@ -1,13 +1,10 @@
 namespace AutoServiceCenter.Web.Controllers
 {
+    using Microsoft.AspNetCore.Mvc;
     using System.Diagnostics;
-
     using ViewModels;
 
-    using Microsoft.AspNetCore.Mvc;
-    using AutoServiceCenter.Web.ViewModels;
-
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         public HomeController(ILogger<HomeController> logger)
         {
