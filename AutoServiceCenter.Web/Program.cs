@@ -11,13 +11,15 @@ namespace AutoServiceCenter.Web
         {
             WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
             
-            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                                      ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             
             builder.Services
                 .AddDbContext<ApplicationDbContext>(options =>
                 {
                     options.UseSqlServer(connectionString);
                 });
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services
@@ -36,6 +38,7 @@ namespace AutoServiceCenter.Web
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddRazorPages();
 
             WebApplication? app = builder.Build();
             
