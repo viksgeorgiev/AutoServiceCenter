@@ -1,5 +1,7 @@
 using AutoServiceCenter.Data;
 using AutoServiceCenter.Data.Seeding.Utilities;
+using AutoServiceCenter.Services.Core.Contracts;
+using AutoServiceCenter.Services.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +36,8 @@ namespace AutoServiceCenter.Web
                 })
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
