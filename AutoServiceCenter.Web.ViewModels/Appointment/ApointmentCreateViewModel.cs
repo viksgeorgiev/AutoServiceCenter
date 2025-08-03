@@ -22,7 +22,7 @@ namespace AutoServiceCenter.Web.ViewModels.Appointment
 
         [Required(ErrorMessage = "Appointment date is required")]
         [DataType(DataType.DateTime)]
-        public DateTime AppointmentDate { get; set; }
+        public DateTime AppointmentDate { get; set; } = DateTime.Now;
 
         public AppointmentStatus Status { get; set; }
 

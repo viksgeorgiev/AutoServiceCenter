@@ -29,7 +29,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _appointmentService.GetAppointmentsAsync(page, 5, searchTerm);
+                AppointmentIndexViewModel viewModel = await _appointmentService.GetAppointmentsAsync(page, 5, searchTerm);
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -90,6 +90,12 @@ namespace AutoServiceCenter.Web.Controllers
             }
 
             await PopulateDropdowns();
+
+            model = new AppointmentCreateViewModel
+            {
+                AppointmentDate = DateTime.Now  
+            };
+
             return View(model);
         }
 
