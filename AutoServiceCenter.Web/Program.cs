@@ -38,6 +38,7 @@ namespace AutoServiceCenter.Web
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+            builder.Services.AddScoped<ICustomerService, CustomerService>();
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();

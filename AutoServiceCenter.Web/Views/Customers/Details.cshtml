@@ -1,0 +1,94 @@
+﻿@model AutoServiceCenter.Web.ViewModels.Customer.CustomerViewModel
+@{
+    ViewData["Title"] = "Customer Details";
+}
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+}
+
+<div class="container mt-5">
+    <h1>@ViewData["Title"]</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Name</dt>
+                <dd class="col-sm-8">@Model.Name</dd>
+                <dt class="col-sm-4">Address</dt>
+                <dd class="col-sm-8">@Model.Address</dd>
+                <dt class="col-sm-4">Vehicles</dt>
+                <dd class="col-sm-8">@Model.VehicleCount</dd>
+                <dt class="col-sm-4">Appointments</dt>
+                <dd class="col-sm-8">@Model.AppointmentCount</dd>
+            </dl>
+            <h3>Vehicles</h3>
+            @if (Model.Vehicles.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Make</th>
+                            <th>Model</th>
+                            <th>Year</th>
+                            <th>License Plate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var vehicle in Model.Vehicles)
+                        {
+                            <tr>
+                                <td>@vehicle.Make</td>
+                                <td>@vehicle.Model</td>
+                                <td>@vehicle.Year</td>
+                                <td>@vehicle.LicensePlate</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No vehicles registered.</p>
+            }
+            <h3>Appointments</h3>
+            @if (Model.Appointments.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Service</th>
+                            <th>Mechanic</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appointment in Model.Appointments)
+                        {
+                            <tr>
+                                <td>@appointment.VehicleLicensePlate</td>
+                                <td>@appointment.ServiceName</td>
+                                <td>@appointment.MechanicName</td>
+                                <td>@appointment.AppointmentDate.ToString("g")</td>
+                                <td>@appointment.Status</td>
+                                <td>@(appointment.Notes.Length > 50 ? appointment.Notes.Substring(0, 50) + "..." : appointment.Notes)</td>
+                                <td>
+                                    <a asp-controller="Appointments" asp-action="Details" asp-route-id="@appointment.Id" class="btn btn-info btn-sm">Details</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No appointments scheduled.</p>
+            }
+            <div>
+                <a asp-action="Index" class="btn btn-primary">Back to List</a>
+            </div>
+        </div>
+    </div>
+</div>

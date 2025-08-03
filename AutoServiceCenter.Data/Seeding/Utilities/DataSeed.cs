@@ -13,6 +13,10 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
             {
                 await roleManager.CreateAsync(new IdentityRole("Administrator"));
             }
+            if (!await roleManager.RoleExistsAsync("Mechanic"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Mechanic"));
+            }
             if (!await roleManager.RoleExistsAsync("User"))
             {
                 await roleManager.CreateAsync(new IdentityRole("User"));
@@ -81,6 +85,7 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
                             ExperienceYears = 5,
                             IsDeleted = false
                         });
+                        await userManager.AddToRoleAsync(mechanicUser, "Mechanic");
                         await context.SaveChangesAsync();
                     }
                 }
