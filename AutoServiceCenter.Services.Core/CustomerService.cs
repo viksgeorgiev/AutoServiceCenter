@@ -1,4 +1,5 @@
 ﻿using AutoServiceCenter.Data;
+using AutoServiceCenter.Data.Models;
 using AutoServiceCenter.Services.Core.Contracts;
 using AutoServiceCenter.Web.ViewModels.Appointment;
 using AutoServiceCenter.Web.ViewModels.Customer;
@@ -23,7 +24,7 @@ namespace AutoServiceCenter.Services.Core
         {
             _logger.LogInformation("Fetching customers for page {Page} with search term {SearchTerm}", page, searchTerm);
 
-            var query = _context.Customers
+            IQueryable<Customer> query = _context.Customers
                 .Include(c => c.User)
                 .Include(c => c.Vehicles)
                 .Include(c => c.Appointments)
@@ -37,14 +38,14 @@ namespace AutoServiceCenter.Services.Core
                     c.Address.ToLower().Contains(searchTerm));
             }
 
-            var totalItems = await query.CountAsync();
-            var customers = await query
+            int totalItems = await query.CountAsync();
+            List<Customer> customers = await query
                 .OrderBy(c => c.User.UserName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            var viewModel = new CustomerIndexViewModel
+            CustomerIndexViewModel viewModel = new CustomerIndexViewModel
             {
                 Customers = customers.Select(c => new CustomerViewModel
                 {
@@ -64,7 +65,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task<CustomerViewModel> GetCustomerByIdAsync(Guid id)
         {
-            var customer = await _context.Customers
+            Customer? customer = await _context.Customers
                 .Include(c => c.User)
                 .Include(c => c.Vehicles)
                 .Include(c => c.Appointments)

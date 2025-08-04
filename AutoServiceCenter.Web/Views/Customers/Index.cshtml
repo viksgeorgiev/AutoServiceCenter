@@ -1,4 +1,5 @@
-﻿@model AutoServiceCenter.Web.ViewModels.Customer.CustomerIndexViewModel
+﻿@using AutoServiceCenter.Web.ViewModels.Customer
+@model AutoServiceCenter.Web.ViewModels.Customer.CustomerIndexViewModel
 
 @{
     ViewData["Title"] = "Customers";
@@ -28,7 +29,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var customer in Model.Customers)
+            @foreach (CustomerViewModel customer in Model.Customers)
             {
                 <tr>
                     <td>@customer.Name</td>

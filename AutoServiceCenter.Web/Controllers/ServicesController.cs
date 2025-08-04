@@ -2,7 +2,6 @@
 using AutoServiceCenter.Web.ViewModels.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutoServiceCenter.Web.Controllers
 {
@@ -24,7 +23,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _serviceService.GetServicesAsync(page, 5);
+                ServiceIndexViewModel viewModel = await _serviceService.GetServicesAsync(page, 5);
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -44,7 +43,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _serviceService.GetServiceByIdAsync(id.Value);
+                ServiceViewModel? viewModel = await _serviceService.GetServiceByIdAsync(id.Value);
                 if (viewModel == null)
                 {
                     _logger.LogWarning("Service with ID {Id} not found", id);
@@ -96,7 +95,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var model = await _serviceService.GetServiceForEditAsync(id.Value);
+                ServiceCreateViewModel? model = await _serviceService.GetServiceForEditAsync(id.Value);
                 if (model == null)
                 {
                     _logger.LogWarning("Service with ID {Id} not found for edit", id);
@@ -143,7 +142,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var model = await _serviceService.GetServiceByIdAsync(id.Value);
+                ServiceViewModel? model = await _serviceService.GetServiceByIdAsync(id.Value);
                 if (model == null)
                 {
                     _logger.LogWarning("Service with ID {Id} not found for deletion", id);

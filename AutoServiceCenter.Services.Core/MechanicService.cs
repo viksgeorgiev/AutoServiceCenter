@@ -26,19 +26,19 @@ namespace AutoServiceCenter.Services.Core
         {
             _logger.LogInformation("Fetching mechanics for page {Page}", page);
 
-            var query = _context.Mechanics
+            IQueryable<Mechanic> query = _context.Mechanics
                 .Include(m => m.User)
                 .Include(m => m.Appointments)
                 .Where(m => !m.IsDeleted);
 
-            var totalItems = await query.CountAsync();
-            var mechanics = await query
+            int totalItems = await query.CountAsync();
+            List<Mechanic> mechanics = await query
                 .OrderBy(m => m.User.UserName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            var viewModel = new MechanicIndexViewModel
+            MechanicIndexViewModel viewModel = new MechanicIndexViewModel
             {
                 Mechanics = mechanics.Select(m => new MechanicViewModel
                 {
@@ -57,7 +57,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task<MechanicViewModel> GetMechanicByIdAsync(Guid id)
         {
-            var mechanic = await _context.Mechanics
+            Mechanic? mechanic = await _context.Mechanics
                 .Include(m => m.User)
                 .Include(m => m.Appointments)
                     .ThenInclude(a => a.Customer)
@@ -98,7 +98,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task CreateMechanicAsync(MechanicCreateViewModel model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            IdentityUser? user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 user = new IdentityUser
@@ -106,7 +106,7 @@ namespace AutoServiceCenter.Services.Core
                     UserName = model.Email,
                     Email = model.Email
                 };
-                var result = await _userManager.CreateAsync(user);
+                IdentityResult result = await _userManager.CreateAsync(user);
                 if (!result.Succeeded)
                 {
                     _logger.LogError("Failed to create user for mechanic with email {Email}", model.Email);
@@ -116,7 +116,7 @@ namespace AutoServiceCenter.Services.Core
 
             await _userManager.AddToRoleAsync(user, "Mechanic");
 
-            var mechanic = new Mechanic
+            Mechanic mechanic = new Mechanic
             {
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
@@ -132,7 +132,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task<MechanicCreateViewModel> GetMechanicForEditAsync(Guid id)
         {
-            var mechanic = await _context.Mechanics
+            Mechanic? mechanic = await _context.Mechanics
                 .Include(m => m.User)
                 .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
 
@@ -153,7 +153,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task UpdateMechanicAsync(Guid id, MechanicCreateViewModel model)
         {
-            var mechanic = await _context.Mechanics
+            Mechanic? mechanic = await _context.Mechanics
                 .Include(m => m.User)
                 .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
 
@@ -163,7 +163,7 @@ namespace AutoServiceCenter.Services.Core
                 return;
             }
 
-            var user = await _userManager.FindByIdAsync(mechanic.UserId);
+            IdentityUser? user = await _userManager.FindByIdAsync(mechanic.UserId);
             if (user == null)
             {
                 _logger.LogWarning("User with ID {UserId} not found for mechanic update", mechanic.UserId);
@@ -174,7 +174,7 @@ namespace AutoServiceCenter.Services.Core
             {
                 user.Email = model.Email;
                 user.UserName = model.Email;
-                var result = await _userManager.UpdateAsync(user);
+                IdentityResult result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
                     _logger.LogError("Failed to update user for mechanic with ID {Id}", id);

@@ -1,4 +1,6 @@
-﻿@model AutoServiceCenter.Web.ViewModels.Customer.CustomerViewModel
+﻿@using AutoServiceCenter.Web.ViewModels.Appointment
+@using AutoServiceCenter.Web.ViewModels.Vehicle
+@model AutoServiceCenter.Web.ViewModels.Customer.CustomerViewModel
 @{
     ViewData["Title"] = "Customer Details";
 }
@@ -33,7 +35,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var vehicle in Model.Vehicles)
+                        @foreach (VehicleViewModel vehicle in Model.Vehicles)
                         {
                             <tr>
                                 <td>@vehicle.Make</td>
@@ -65,7 +67,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var appointment in Model.Appointments)
+                        @foreach (AppointmentViewModel appointment in Model.Appointments)
                         {
                             <tr>
                                 <td>@appointment.VehicleLicensePlate</td>

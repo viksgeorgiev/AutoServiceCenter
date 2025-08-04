@@ -1,4 +1,5 @@
-﻿@model AutoServiceCenter.Web.ViewModels.Services.ServiceIndexViewModel
+﻿@using AutoServiceCenter.Web.ViewModels.Services
+@model AutoServiceCenter.Web.ViewModels.Services.ServiceIndexViewModel
 
 @{
     ViewData["Title"] = "Services";
@@ -23,7 +24,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var service in Model.Services)
+            @foreach (ServiceViewModel service in Model.Services)
             {
                 <tr>
                     <td>@service.Name</td>

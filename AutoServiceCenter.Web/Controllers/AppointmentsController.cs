@@ -50,7 +50,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value);
+                AppointmentViewModel? viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value);
                 if (viewModel == null)
                 {
                     _logger.LogWarning("Appointment with ID {Id} not found", id);
@@ -109,7 +109,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _appointmentService.GetAppointmentForEditAsync(id.Value);
+                AppointmentCreateViewModel? viewModel = await _appointmentService.GetAppointmentForEditAsync(id.Value);
                 if (viewModel == null)
                 {
                     _logger.LogWarning("Appointment with ID {Id} not found for edit", id);
@@ -164,7 +164,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value);
+                AppointmentViewModel? viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value);
                 if (viewModel == null)
                 {
                     _logger.LogWarning("Appointment with ID {Id} not found", id);

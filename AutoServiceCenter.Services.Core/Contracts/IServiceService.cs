@@ -1,6 +1,4 @@
 ﻿using AutoServiceCenter.Web.ViewModels.Services;
-using System;
-using System.Threading.Tasks;
 
 namespace AutoServiceCenter.Services.Core.Contracts
 {

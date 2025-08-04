@@ -1,4 +1,5 @@
 ﻿using AutoServiceCenter.Services.Core.Contracts;
+using AutoServiceCenter.Web.ViewModels.Customer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +23,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _customerService.GetCustomersAsync(page, 5, searchTerm);
+                CustomerIndexViewModel viewModel = await _customerService.GetCustomersAsync(page, 5, searchTerm);
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -42,7 +43,7 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                var viewModel = await _customerService.GetCustomerByIdAsync(id.Value);
+                CustomerViewModel? viewModel = await _customerService.GetCustomerByIdAsync(id.Value);
                 if (viewModel == null)
                 {
                     _logger.LogWarning("Customer with ID {Id} not found", id);

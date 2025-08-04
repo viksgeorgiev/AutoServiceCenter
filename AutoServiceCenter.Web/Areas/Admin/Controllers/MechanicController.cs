@@ -24,7 +24,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
 
             try
             {
-                var viewModel = await _mechanicService.GetMechanicsAsync(page, 5);
+                MechanicIndexViewModel viewModel = await _mechanicService.GetMechanicsAsync(page, 5);
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -71,7 +71,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
 
             try
             {
-                var model = await _mechanicService.GetMechanicForEditAsync(id.Value);
+                MechanicCreateViewModel? model = await _mechanicService.GetMechanicForEditAsync(id.Value);
                 if (model == null)
                 {
                     _logger.LogWarning("Mechanic with ID {Id} not found for edit", id);

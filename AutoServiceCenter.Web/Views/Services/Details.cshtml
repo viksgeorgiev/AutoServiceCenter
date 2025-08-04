@@ -1,4 +1,5 @@
-﻿@model AutoServiceCenter.Web.ViewModels.Services.ServiceViewModel
+﻿@using AutoServiceCenter.Web.ViewModels.Appointment
+@model AutoServiceCenter.Web.ViewModels.Services.ServiceViewModel
 
 @{
     ViewData["Title"] = "Service Details";
@@ -37,7 +38,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var appointment in Model.Appointments)
+                        @foreach (AppointmentViewModel appointment in Model.Appointments)
                         {
                             <tr>
                                 <td>@appointment.CustomerName</td>

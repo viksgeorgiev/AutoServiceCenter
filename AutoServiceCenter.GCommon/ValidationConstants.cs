@@ -16,7 +16,7 @@
         {
             public const int NameMaxLength = 100;
             public const int DescriptionMaxLength = 500;
-            public const double PriceMinValue = 0.00; // Minimum price for a service (Left 0.00 in case of a mix-up and job redone)
+            public const double PriceMinValue = 0.00; // Minimum price for a service (Left as 0.00 in case of a mix-up and job redone)
             public const double PriceMaxValue = 10000.00; // Maximum price for a service
         }
 

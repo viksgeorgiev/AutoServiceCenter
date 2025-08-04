@@ -32,7 +32,7 @@ namespace AutoServiceCenter.Web.Controllers
         public IActionResult Error()
         {
 
-            var viewModel = new ErrorViewModel
+            ErrorViewModel viewModel = new ErrorViewModel
             {
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
             };
@@ -51,7 +51,7 @@ namespace AutoServiceCenter.Web.Controllers
         [Route("/Error/404")]
         public new IActionResult NotFound()
         {
-            var viewModel = new ErrorViewModel
+            ErrorViewModel viewModel = new ErrorViewModel
             {
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
             };

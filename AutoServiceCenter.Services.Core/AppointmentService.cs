@@ -23,7 +23,7 @@ namespace AutoServiceCenter.Services.Core
         {
             _logger.LogInformation("Fetching appointments for page {Page} with search term {SearchTerm}", page, searchTerm);
 
-            var query = _context.Appointments
+            IQueryable<Appointment> query = _context.Appointments
                 .Include(a => a.Customer).ThenInclude(c => c.User)
                 .Include(a => a.Vehicle)
                 .Include(a => a.Service)
@@ -40,14 +40,14 @@ namespace AutoServiceCenter.Services.Core
                     a.Notes.ToLower().Contains(searchTerm));
             }
 
-            var totalItems = await query.CountAsync();
-            var appointments = await query
+            int totalItems = await query.CountAsync();
+            List<Appointment> appointments = await query
                 .OrderBy(a => a.Date)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            var viewModel = new AppointmentIndexViewModel
+            AppointmentIndexViewModel viewModel = new AppointmentIndexViewModel
             {
                 Appointments = appointments.Select(a => new AppointmentViewModel
                 {
@@ -70,7 +70,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task<AppointmentViewModel> GetAppointmentByIdAsync(Guid id)
         {
-            var appointment = await _context.Appointments
+            Appointment? appointment = await _context.Appointments
                 .Include(a => a.Customer).ThenInclude(c => c.User)
                 .Include(a => a.Vehicle)
                 .Include(a => a.Service)
@@ -100,7 +100,7 @@ namespace AutoServiceCenter.Services.Core
         {
             try
             {
-                var appointment = new Appointment
+                Appointment appointment = new Appointment
                 {
                     Id = Guid.NewGuid(),
                     CustomerId = model.CustomerId,
@@ -127,7 +127,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task<AppointmentCreateViewModel> GetAppointmentForEditAsync(Guid id)
         {
-            var appointment = await _context.Appointments
+            Appointment? appointment = await _context.Appointments
                 .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
             if (appointment == null)
@@ -153,7 +153,7 @@ namespace AutoServiceCenter.Services.Core
         {
             try
             {
-                var appointment = await _context.Appointments
+                Appointment? appointment = await _context.Appointments
                     .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
                 if (appointment == null)
@@ -185,7 +185,7 @@ namespace AutoServiceCenter.Services.Core
         {
             try
             {
-                var appointment = await _context.Appointments
+                Appointment? appointment = await _context.Appointments
                     .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
                 if (appointment == null)

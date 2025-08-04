@@ -1,5 +1,4 @@
-﻿using AutoServiceCenter.Data;
-using AutoServiceCenter.Data.Models;
+﻿using AutoServiceCenter.Data.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace AutoServiceCenter.Data.Seeding.Utilities
@@ -23,10 +22,10 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
             }
 
             // Seed Admin User
-            var adminUser = new IdentityUser { UserName = "admin@auto.com", Email = "admin@auto.com", EmailConfirmed = true };
+            IdentityUser adminUser = new IdentityUser { UserName = "admin@auto.com", Email = "admin@auto.com", EmailConfirmed = true };
             if (await userManager.FindByEmailAsync(adminUser.Email) == null)
             {
-                var result = await userManager.CreateAsync(adminUser, "Admin123!");
+                IdentityResult result = await userManager.CreateAsync(adminUser, "Admin123!");
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(adminUser, "Administrator");
@@ -34,10 +33,10 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
             }
 
             // Seed Regular User
-            var regularUser = new IdentityUser { UserName = "user@auto.com", Email = "user@auto.com", EmailConfirmed = true };
+            IdentityUser regularUser = new IdentityUser { UserName = "user@auto.com", Email = "user@auto.com", EmailConfirmed = true };
             if (await userManager.FindByEmailAsync(regularUser.Email) == null)
             {
-                var result = await userManager.CreateAsync(regularUser, "User123!");
+                IdentityResult result = await userManager.CreateAsync(regularUser, "User123!");
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(regularUser, "User");
@@ -71,10 +70,10 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
             // Seed Mechanic
             if (!context.Mechanics.Any())
             {
-                var mechanicUser = new IdentityUser { UserName = "mechanic@auto.com", Email = "mechanic@auto.com", EmailConfirmed = true };
+                IdentityUser mechanicUser = new IdentityUser { UserName = "mechanic@auto.com", Email = "mechanic@auto.com", EmailConfirmed = true };
                 if (await userManager.FindByEmailAsync(mechanicUser.Email) == null)
                 {
-                    var result = await userManager.CreateAsync(mechanicUser, "Mechanic123!");
+                    IdentityResult result = await userManager.CreateAsync(mechanicUser, "Mechanic123!");
                     if (result.Succeeded)
                     {
                         context.Mechanics.Add(new Mechanic
@@ -94,7 +93,7 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
             // Seed Customer and Vehicle
             if (!context.Customers.Any())
             {
-                var customer = new Customer
+                Customer customer = new Customer
                 {
                     Id = Guid.NewGuid(),
                     UserId = regularUser.Id,

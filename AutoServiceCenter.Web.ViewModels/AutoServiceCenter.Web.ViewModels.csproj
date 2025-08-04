@@ -9,7 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AutoServiceCenter.Data.Models\AutoServiceCenter.Data.Models.csproj" />
     <ProjectReference Include="..\AutoServiceCenter.GCommon\AutoServiceCenter.GCommon.csproj" />
-    <ProjectReference Include="..\AutoServiceCenter.Services.AutoMapping\AutoServiceCenter.Services.AutoMapping.csproj" />
   </ItemGroup>
 
 </Project>

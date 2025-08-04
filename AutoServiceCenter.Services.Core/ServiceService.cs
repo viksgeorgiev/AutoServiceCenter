@@ -23,18 +23,18 @@ namespace AutoServiceCenter.Services.Core
         {
             _logger.LogInformation("Fetching services for page {Page}", page);
 
-            var query = _context.Services
+            IQueryable<Service> query = _context.Services
                 .Include(s => s.Appointments)
                 .Where(s => !s.IsDeleted);
 
-            var totalItems = await query.CountAsync();
-            var services = await query
+            int totalItems = await query.CountAsync();
+            List<Service> services = await query
                 .OrderBy(s => s.Name)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            var viewModel = new ServiceIndexViewModel
+            ServiceIndexViewModel viewModel = new ServiceIndexViewModel
             {
                 Services = services.Select(s => new ServiceViewModel
                 {
@@ -53,7 +53,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task<ServiceViewModel> GetServiceByIdAsync(Guid id)
         {
-            var service = await _context.Services
+            Service? service = await _context.Services
                 .Include(s => s.Appointments)
                     .ThenInclude(a => a.Customer)
                     .ThenInclude(c => c.User)
@@ -94,7 +94,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task CreateServiceAsync(ServiceCreateViewModel model)
         {
-            var service = new Service
+            Service service = new Service
             {
                 Id = Guid.NewGuid(),
                 Name = model.Name,
@@ -110,7 +110,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task<ServiceCreateViewModel> GetServiceForEditAsync(Guid id)
         {
-            var service = await _context.Services
+            Service? service = await _context.Services
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
 
             if (service == null)
@@ -129,7 +129,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task UpdateServiceAsync(Guid id, ServiceCreateViewModel model)
         {
-            var service = await _context.Services
+            Service? service = await _context.Services
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
 
             if (service == null)
@@ -148,7 +148,7 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task DeleteServiceAsync(Guid id)
         {
-            var service = await _context.Services
+            Service? service = await _context.Services
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
 
             if (service == null)
