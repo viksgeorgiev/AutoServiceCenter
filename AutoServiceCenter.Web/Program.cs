@@ -39,6 +39,7 @@ namespace AutoServiceCenter.Web
 
             builder.Services.AddScoped<IAppointmentService, AppointmentService>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
+            builder.Services.AddScoped<IServiceService, ServiceService>();
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
