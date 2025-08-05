@@ -1,10 +1,12 @@
 ﻿using AutoServiceCenter.Services.Core.Contracts;
+using AutoServiceCenter.Web.Controllers;
 using AutoServiceCenter.Web.ViewModels.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AutoServiceCenter.Web.Controllers
+namespace AutoServiceCenter.Web.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     [Authorize(Roles = "Mechanic,Administrator")]
     public class ServicesController : BaseController
     {
@@ -29,7 +31,7 @@ namespace AutoServiceCenter.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching services for Index");
-                return RedirectToAction("Error", "Home", new { statusCode = 500 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 500 });
             }
         }
 
@@ -38,7 +40,7 @@ namespace AutoServiceCenter.Web.Controllers
             if (id == null)
             {
                 _logger.LogWarning("Details action called with null ID");
-                return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 404 });
             }
 
             try
@@ -47,14 +49,14 @@ namespace AutoServiceCenter.Web.Controllers
                 if (viewModel == null)
                 {
                     _logger.LogWarning("Service with ID {Id} not found", id);
-                    return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                    return RedirectToAction("Error", "Home", new { area = "", statusCode = 404 });
                 }
                 return View(viewModel);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching service details for ID {Id}", id);
-                return RedirectToAction("Error", "Home", new { statusCode = 500 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 500 });
             }
         }
 
@@ -90,7 +92,7 @@ namespace AutoServiceCenter.Web.Controllers
             if (id == null)
             {
                 _logger.LogWarning("Edit action called with null ID");
-                return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 404 });
             }
 
             try
@@ -99,14 +101,14 @@ namespace AutoServiceCenter.Web.Controllers
                 if (model == null)
                 {
                     _logger.LogWarning("Service with ID {Id} not found for edit", id);
-                    return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                    return RedirectToAction("Error", "Home", new { area = "", statusCode = 404 });
                 }
                 return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching service for edit with ID {Id}", id);
-                return RedirectToAction("Error", "Home", new { statusCode = 500 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 500 });
             }
         }
 
@@ -137,7 +139,7 @@ namespace AutoServiceCenter.Web.Controllers
             if (id == null)
             {
                 _logger.LogWarning("Delete action called with null ID");
-                return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 404 });
             }
 
             try
@@ -146,14 +148,14 @@ namespace AutoServiceCenter.Web.Controllers
                 if (model == null)
                 {
                     _logger.LogWarning("Service with ID {Id} not found for deletion", id);
-                    return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                    return RedirectToAction("Error", "Home", new { area = "", statusCode = 404 });
                 }
                 return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching service for deletion with ID {Id}", id);
-                return RedirectToAction("Error", "Home", new { statusCode = 500 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 500 });
             }
         }
 
@@ -169,7 +171,7 @@ namespace AutoServiceCenter.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting service with ID {Id}", id);
-                return RedirectToAction("Error", "Home", new { statusCode = 500 });
+                return RedirectToAction("Error", "Home", new { area = "", statusCode = 500 });
             }
         }
     }
