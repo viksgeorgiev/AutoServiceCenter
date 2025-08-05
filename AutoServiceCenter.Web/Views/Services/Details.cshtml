@@ -40,17 +40,18 @@
                     <tbody>
                         @foreach (AppointmentViewModel appointment in Model.Appointments)
                         {
-                            <tr>
-                                <td>@appointment.CustomerName</td>
-                                <td>@appointment.VehicleLicensePlate</td>
-                                <td>@appointment.MechanicName</td>
-                                <td>@appointment.AppointmentDate.ToString("g")</td>
-                                <td>@appointment.Status</td>
-                                <td>@(appointment.Notes.Length > 50 ? appointment.Notes.Substring(0, 50) + "..." : appointment.Notes)</td>
-                                <td>
-                                    <a asp-controller="Appointments" asp-action="Details" asp-route-id="@appointment.Id" class="btn btn-info btn-sm">Details</a>
-                                </td>
-                            </tr>
+	                        <tr>
+		                        <td>@appointment.Name</td>
+		                        <td>@appointment.CustomerEmail</td>
+		                        <td>@appointment.VehicleLicensePlate</td>
+		                        <td>@appointment.MechanicName</td>
+		                        <td>@appointment.AppointmentDate.ToString("g")</td>
+		                        <td>@appointment.Status</td>
+		                        <td>@(appointment.Notes.Length > 50 ? appointment.Notes.Substring(0, 50) + "..." : appointment.Notes)</td>
+		                        <td>
+			                        <a asp-controller="Appointments" asp-action="Details" asp-route-id="@appointment.Id" class="btn btn-info btn-sm">Details</a>
+		                        </td>
+	                        </tr>
                         }
                     </tbody>
                 </table>

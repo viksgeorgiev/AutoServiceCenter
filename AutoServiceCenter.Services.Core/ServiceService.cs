@@ -82,7 +82,8 @@ namespace AutoServiceCenter.Services.Core
                     .Select(a => new AppointmentViewModel
                     {
                         Id = a.Id,
-                        CustomerName = a.Customer?.User?.UserName ?? "N/A",
+                        Name = a.Customer.Name,
+                        CustomerEmail = a.Customer?.User?.UserName ?? "N/A",
                         VehicleLicensePlate = a.Vehicle?.LicensePlate ?? "N/A",
                         MechanicName = a.Mechanic?.User?.UserName ?? "N/A",
                         AppointmentDate = a.Date,

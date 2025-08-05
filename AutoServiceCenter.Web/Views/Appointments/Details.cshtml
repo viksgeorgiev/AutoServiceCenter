@@ -10,8 +10,10 @@
 <div class="container mt-5">
     <h1>@ViewData["Title"]</h1>
     <dl class="row">
-        <dt class="col-sm-3">Customer</dt>
-        <dd class="col-sm-9">@Model.CustomerName</dd>
+        <dt class="col-sm-3">Customer Name</dt>
+        <dd class="col-sm-9">@Model.Name</dd>
+        <dt class="col-sm-3">Customer Email</dt>
+        <dd class="col-sm-9">@Model.CustomerEmail</dd>
         <dt class="col-sm-3">Vehicle</dt>
         <dd class="col-sm-9">@Model.VehicleLicensePlate</dd>
         <dt class="col-sm-3">Service</dt>
@@ -26,7 +28,7 @@
         <dd class="col-sm-9">@Model.Notes</dd>
     </dl>
     <div>
-        @if (User.IsInRole("Administrator") || User.IsInRole("Mechanic") || (User.Identity?.IsAuthenticated == true && Model.CustomerName == User.Identity.Name))
+        @if (User.IsInRole("Administrator") || User.IsInRole("Mechanic") || (User.Identity?.IsAuthenticated == true && Model.CustomerEmail == User.Identity.Name))
         {
             <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
             <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>

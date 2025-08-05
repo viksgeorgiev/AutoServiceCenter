@@ -23,10 +23,12 @@
         public static class Customer
         {
             public const int AddressMaxLength = 255;
+            public const int NameMaxLength = 120;
         }
 
         public static class Mechanic
         {
+            public const int NameMaxLength = 120;
             public const int SpecializationMaxLength = 100;
             public const int ExperienceYearsMinValue = 0;
             public const int ExperienceYearsMaxValue = 50;

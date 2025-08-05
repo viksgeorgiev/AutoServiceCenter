@@ -33,7 +33,7 @@ namespace AutoServiceCenter.Services.Core
 
             int totalItems = await query.CountAsync();
             List<Mechanic> mechanics = await query
-                .OrderBy(m => m.User.UserName)
+                .OrderBy(m => m.Name)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -43,6 +43,7 @@ namespace AutoServiceCenter.Services.Core
                 Mechanics = mechanics.Select(m => new MechanicViewModel
                 {
                     Id = m.Id,
+                    Name = m.Name,
                     UserName = m.User?.UserName ?? "N/A",
                     Specialization = m.Specialization,
                     ExperienceYears = m.ExperienceYears,
@@ -77,6 +78,7 @@ namespace AutoServiceCenter.Services.Core
             return new MechanicViewModel
             {
                 Id = mechanic.Id,
+                Name = mechanic.Name,
                 UserName = mechanic.User?.UserName ?? "N/A",
                 Specialization = mechanic.Specialization,
                 ExperienceYears = mechanic.ExperienceYears,
@@ -86,7 +88,8 @@ namespace AutoServiceCenter.Services.Core
                     .Select(a => new AppointmentViewModel
                     {
                         Id = a.Id,
-                        CustomerName = a.Customer?.User?.UserName ?? "N/A",
+                        Name = a.Customer?.Name ?? "N/A",
+                        CustomerEmail = a.Customer?.User?.UserName ?? "N/A",
                         VehicleLicensePlate = a.Vehicle?.LicensePlate ?? "N/A",
                         ServiceName = a.Service?.Name ?? "N/A",
                         AppointmentDate = a.Date,
@@ -119,6 +122,7 @@ namespace AutoServiceCenter.Services.Core
             Mechanic mechanic = new Mechanic
             {
                 Id = Guid.NewGuid(),
+                Name = model.Name,
                 UserId = user.Id,
                 Specialization = model.Specialization,
                 ExperienceYears = model.ExperienceYears,
@@ -145,6 +149,7 @@ namespace AutoServiceCenter.Services.Core
             return new MechanicCreateViewModel
             {
                 Id = mechanic.Id,
+                Name = mechanic.Name,
                 Email = mechanic.User?.Email ?? string.Empty,
                 Specialization = mechanic.Specialization,
                 ExperienceYears = mechanic.ExperienceYears
@@ -182,6 +187,7 @@ namespace AutoServiceCenter.Services.Core
                 }
             }
 
+            mechanic.Name = model.Name;
             mechanic.Specialization = model.Specialization;
             mechanic.ExperienceYears = model.ExperienceYears;
 

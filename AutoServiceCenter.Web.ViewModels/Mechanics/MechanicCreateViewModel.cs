@@ -1,21 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using static AutoServiceCenter.GCommon.ValidationConstants.Mechanic;
+using AutoServiceCenter.GCommon;
 
 namespace AutoServiceCenter.Web.ViewModels.Mechanics
 {
     public class MechanicCreateViewModel
     {
         public Guid Id { get; set; }
-            
+
         [Required]
         [EmailAddress]
-        public string Email { get; set; } = string.Empty;
+        [Display(Name = "Email")]
+        public string Email { get; set; } = null!;
 
         [Required]
-        [MaxLength(SpecializationMaxLength)]
-        public string Specialization { get; set; } = string.Empty;
+        [StringLength(ValidationConstants.Mechanic.NameMaxLength, ErrorMessage = "The {0} must be at most {1} characters long.")]
+        [Display(Name = "Name")]
+        public string Name { get; set; } = null!;
 
-        [Range(ExperienceYearsMinValue, ExperienceYearsMaxValue)]
+        [Required]
+        [StringLength(ValidationConstants.Mechanic.SpecializationMaxLength, ErrorMessage = "The {0} must be at most {1} characters long.")]
+        public string Specialization { get; set; } = null!;
+
+        [Range(ValidationConstants.Mechanic.ExperienceYearsMinValue, ValidationConstants.Mechanic.ExperienceYearsMaxValue)]
         public int ExperienceYears { get; set; }
     }
 }

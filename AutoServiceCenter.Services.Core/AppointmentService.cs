@@ -39,6 +39,7 @@ namespace AutoServiceCenter.Services.Core
             {
                 searchTerm = searchTerm.ToLower();
                 query = query.Where(a =>
+                    a.Customer.Name.ToLower().Contains(searchTerm) ||
                     a.Customer.User.UserName.ToLower().Contains(searchTerm) ||
                     a.Vehicle.LicensePlate.ToLower().Contains(searchTerm) ||
                     a.Service.Name.ToLower().Contains(searchTerm) ||
@@ -53,10 +54,11 @@ namespace AutoServiceCenter.Services.Core
                 .Select(a => new AppointmentViewModel
                 {
                     Id = a.Id,
-                    CustomerName = a.Customer.User.UserName ?? "N/A",
+                    Name = a.Customer.Name ?? "N/A",
+                    CustomerEmail = a.Customer.User.UserName ?? "N/A",
                     VehicleLicensePlate = a.Vehicle.LicensePlate,
-                    ServiceName = a.Service.Name ,
-                    MechanicName = a.Mechanic.User.UserName ?? "N/A",
+                    ServiceName = a.Service.Name,
+                    MechanicName = a.Mechanic.Name ?? "N/A",
                     AppointmentDate = a.Date,
                     Status = a.Status,
                     Notes = a.Notes
@@ -90,10 +92,11 @@ namespace AutoServiceCenter.Services.Core
             return new AppointmentViewModel
             {
                 Id = appointment.Id,
-                CustomerName = appointment.Customer?.User?.UserName ?? "N/A",
+                Name = appointment.Customer?.Name ?? "N/A",
+                CustomerEmail = appointment.Customer?.User?.UserName ?? "N/A",
                 VehicleLicensePlate = appointment.Vehicle?.LicensePlate ?? "N/A",
                 ServiceName = appointment.Service?.Name ?? "N/A",
-                MechanicName = appointment.Mechanic?.User?.UserName ?? "N/A",
+                MechanicName = appointment.Mechanic?.Name ?? "N/A",
                 AppointmentDate = appointment.Date,
                 Status = appointment.Status,
                 Notes = appointment.Notes
@@ -235,7 +238,7 @@ namespace AutoServiceCenter.Services.Core
                 .Select(c => new DropdownItem
                 {
                     Value = c.Id.ToString(),
-                    Text = c.User.UserName,
+                    Text = c.Name,
                     Selected = !isAdminOrMechanic && c.UserId == userId
                 })
                 .ToListAsync();
@@ -281,7 +284,7 @@ namespace AutoServiceCenter.Services.Core
                 .Select(m => new DropdownItem
                 {
                     Value = m.Id.ToString(),
-                    Text = m.User.UserName
+                    Text = m.Name
                 })
                 .ToListAsync();
         }

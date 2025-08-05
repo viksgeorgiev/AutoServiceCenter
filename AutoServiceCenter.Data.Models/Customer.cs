@@ -9,6 +9,9 @@ namespace AutoServiceCenter.Data.Models
         [Key]
         public Guid Id { get; set; }
 
+        [Required] 
+        public string Name { get; set; } = null!;
+
         [Required]
         public string UserId { get; set; } = null!;
 
