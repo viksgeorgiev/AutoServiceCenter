@@ -6,18 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AutoServiceCenter.Web.Areas.Admin.Controllers
 {
-    [Area("Admin")]
     [Authorize(Roles = "Administrator")]
-    public class DashboardController : Controller
+    public class AdminController : Controller
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ILogger<DashboardController> _logger;
+        private readonly ILogger<AdminController> _logger;
 
-        public DashboardController(
+        public AdminController(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            ILogger<DashboardController> logger)
+            ILogger<AdminController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -25,7 +24,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Dashboard()
         {
             return View();
         }

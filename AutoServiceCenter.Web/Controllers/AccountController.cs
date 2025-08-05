@@ -1,12 +1,15 @@
 ﻿using AutoServiceCenter.Data;
 using AutoServiceCenter.Data.Models;
+using AutoServiceCenter.GCommon;
 using AutoServiceCenter.Services.Core.Contracts;
 using AutoServiceCenter.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
 namespace AutoServiceCenter.Web.Controllers
 {
@@ -17,19 +20,22 @@ namespace AutoServiceCenter.Web.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ICustomerService _customerService;
         private readonly ILogger<AccountController> _logger;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             ApplicationDbContext context,
             ICustomerService customerService,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _customerService = customerService;
             _logger = logger;
+            _roleManager = roleManager;
         }
 
         [HttpGet]
@@ -48,14 +54,23 @@ namespace AutoServiceCenter.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                IdentityUser user = new IdentityUser { UserName = model.Email, Email = model.Email };
-                IdentityResult result = await _userManager.CreateAsync(user, model.Password);
+                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with email {Email}", model.Email);
 
-                    Customer customer = new Customer
+                    // Assign User role
+                    var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                    if (!roleResult.Succeeded)
+                    {
+                        _logger.LogError("Failed to assign User role to {Email}: {Errors}", model.Email, string.Join(", ", roleResult.Errors));
+                        ModelState.AddModelError(string.Empty, "Failed to assign user role.");
+                        return View(model);
+                    }
+
+                    var customer = new Customer
                     {
                         Id = Guid.NewGuid(),
                         Name = model.Name,
@@ -64,7 +79,7 @@ namespace AutoServiceCenter.Web.Controllers
                         IsDeleted = false
                     };
 
-                    Vehicle vehicle = new Vehicle
+                    var vehicle = new Vehicle
                     {
                         Id = Guid.NewGuid(),
                         CustomerId = customer.Id,
@@ -93,7 +108,7 @@ namespace AutoServiceCenter.Web.Controllers
                     return LocalRedirect(returnUrl ?? Url.Content("~/"));
                 }
 
-                foreach (IdentityError error in result.Errors)
+                foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
@@ -118,7 +133,7 @@ namespace AutoServiceCenter.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                SignInResult result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in with email {Email}", model.Email);
@@ -139,14 +154,14 @@ namespace AutoServiceCenter.Web.Controllers
         [Authorize]
         public async Task<IActionResult> Manage()
         {
-            IdentityUser? user = await _userManager.GetUserAsync(User);
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 _logger.LogWarning("User not found for manage page");
                 return NotFound();
             }
 
-            Customer? customer = await _context.Customers
+            var customer = await _context.Customers
                 .Include(c => c.Vehicles)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id && !c.IsDeleted);
 
@@ -156,9 +171,9 @@ namespace AutoServiceCenter.Web.Controllers
                 return NotFound();
             }
 
-            Vehicle? vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
+            var vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
 
-            ManageViewModel model = new ManageViewModel
+            var model = new ManageViewModel
             {
                 Name = customer.Name,
                 Email = user.Email,
@@ -183,14 +198,14 @@ namespace AutoServiceCenter.Web.Controllers
                 return View(model);
             }
 
-            IdentityUser? user = await _userManager.GetUserAsync(User);
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 _logger.LogWarning("User not found for manage update");
                 return NotFound();
             }
 
-            Customer? customer = await _context.Customers
+            var customer = await _context.Customers
                 .Include(c => c.Vehicles)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id && !c.IsDeleted);
 
@@ -204,10 +219,10 @@ namespace AutoServiceCenter.Web.Controllers
             {
                 user.Email = model.Email;
                 user.UserName = model.Email;
-                IdentityResult result = await _userManager.UpdateAsync(user);
+                var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
-                    foreach (IdentityError error in result.Errors)
+                    foreach (var error in result.Errors)
                     {
                         ModelState.AddModelError(string.Empty, error.Description);
                     }
@@ -218,7 +233,7 @@ namespace AutoServiceCenter.Web.Controllers
             customer.Name = model.Name;
             customer.Address = model.Address;
 
-            Vehicle? vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
+            var vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
             if (vehicle != null)
             {
                 vehicle.Make = model.VehicleMake;

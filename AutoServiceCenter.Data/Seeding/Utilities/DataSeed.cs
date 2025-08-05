@@ -32,7 +32,7 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
                 }
             }
 
-            // Seed Regular User
+            // Seed Regular User and Customer
             IdentityUser regularUser = new IdentityUser { UserName = "user@auto.com", Email = "user@auto.com", EmailConfirmed = true };
             if (await userManager.FindByEmailAsync(regularUser.Email) == null)
             {
@@ -40,6 +40,62 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(regularUser, "User");
+
+                    // Seed Customer for Regular User
+                    if (!context.Customers.Any(c => c.UserId == regularUser.Id))
+                    {
+                        context.Customers.Add(new Customer
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = regularUser.Id,
+                            Name = "John Doe", // Added Name field
+                            Address = "Liulin 10 blok 122 vhod A ap 4",
+                            IsDeleted = false
+                        });
+
+                        await context.SaveChangesAsync();
+
+                        // Seed Vehicle for Customer
+                        var customer = context.Customers.FirstOrDefault(c => c.UserId == regularUser.Id);
+                        if (customer != null)
+                        {
+                            context.Vehicles.Add(new Vehicle
+                            {
+                                Id = Guid.NewGuid(),
+                                CustomerId = customer.Id,
+                                Make = "Toyota",
+                                Model = "Camry",
+                                Year = 2020,
+                                LicensePlate = "CB1234AA",
+                                IsDeleted = false
+                            });
+                            await context.SaveChangesAsync();
+                        }
+                    }
+                }
+            }
+
+            // Seed Mechanic
+            if (!context.Mechanics.Any())
+            {
+                IdentityUser mechanicUser = new IdentityUser { UserName = "mechanic@auto.com", Email = "mechanic@auto.com", EmailConfirmed = true };
+                if (await userManager.FindByEmailAsync(mechanicUser.Email) == null)
+                {
+                    IdentityResult result = await userManager.CreateAsync(mechanicUser, "Mechanic123!");
+                    if (result.Succeeded)
+                    {
+                        context.Mechanics.Add(new Mechanic
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = mechanicUser.Id,
+                            Name = "Mike Smith", // Added Name field
+                            Specialization = "General Repair",
+                            ExperienceYears = 5,
+                            IsDeleted = false
+                        });
+                        await userManager.AddToRoleAsync(mechanicUser, "Mechanic");
+                        await context.SaveChangesAsync();
+                    }
                 }
             }
 
@@ -64,55 +120,6 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
                         IsDeleted = false
                     }
                 );
-                await context.SaveChangesAsync();
-            }
-
-            // Seed Mechanic
-            if (!context.Mechanics.Any())
-            {
-                IdentityUser mechanicUser = new IdentityUser { UserName = "mechanic@auto.com", Email = "mechanic@auto.com", EmailConfirmed = true };
-                if (await userManager.FindByEmailAsync(mechanicUser.Email) == null)
-                {
-                    IdentityResult result = await userManager.CreateAsync(mechanicUser, "Mechanic123!");
-                    if (result.Succeeded)
-                    {
-                        context.Mechanics.Add(new Mechanic
-                        {
-                            Id = Guid.NewGuid(),
-                            UserId = mechanicUser.Id,
-                            Specialization = "General Repair",
-                            ExperienceYears = 5,
-                            IsDeleted = false
-                        });
-                        await userManager.AddToRoleAsync(mechanicUser, "Mechanic");
-                        await context.SaveChangesAsync();
-                    }
-                }
-            }
-
-            // Seed Customer and Vehicle
-            if (!context.Customers.Any())
-            {
-                Customer customer = new Customer
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = regularUser.Id,
-                    Address = "Liulin 10 blok 122 vhod A ap 4",
-                    IsDeleted = false
-                };
-                context.Customers.Add(customer);
-                await context.SaveChangesAsync();
-
-                context.Vehicles.Add(new Vehicle
-                {
-                    Id = Guid.NewGuid(),
-                    CustomerId = customer.Id,
-                    Make = "Toyota",
-                    Model = "Camry",
-                    Year = 2020,
-                    LicensePlate = "CB1234AA",
-                    IsDeleted = false
-                });
                 await context.SaveChangesAsync();
             }
         }
