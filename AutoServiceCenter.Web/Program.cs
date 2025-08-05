@@ -1,7 +1,7 @@
 using AutoServiceCenter.Data;
 using AutoServiceCenter.Data.Seeding.Utilities;
-using AutoServiceCenter.Services.Core.Contracts;
 using AutoServiceCenter.Services.Core;
+using AutoServiceCenter.Services.Core.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +20,7 @@ namespace AutoServiceCenter.Web
                 {
                     options.UseSqlServer(connectionString);
                 });
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services
@@ -44,6 +45,8 @@ namespace AutoServiceCenter.Web
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
+
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             WebApplication? app = builder.Build();
             
