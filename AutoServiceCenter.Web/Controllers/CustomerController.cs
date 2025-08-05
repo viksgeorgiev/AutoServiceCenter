@@ -1,62 +1,113 @@
 ﻿using AutoServiceCenter.Services.Core.Contracts;
 using AutoServiceCenter.Web.ViewModels.Customer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoServiceCenter.Web.Controllers
 {
-    [Authorize(Roles = "Mechanic,Administrator")]
-    public class CustomersController : BaseController
+    [Authorize(Roles = "Administrator,Mechanic")]
+    public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;
-        private readonly ILogger<CustomersController> _logger;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public CustomersController(ICustomerService customerService, ILogger<CustomersController> logger)
+        public CustomersController(ICustomerService customerService, UserManager<IdentityUser> userManager)
         {
             _customerService = customerService;
-            _logger = logger;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index(int page = 1, string searchTerm = "")
         {
-            _logger.LogInformation("Accessing Customers/Index with page {Page} and search term {SearchTerm}", page, searchTerm);
+            int pageSize = 10;
+            CustomerIndexViewModel model = await _customerService.GetCustomersAsync(page, pageSize, searchTerm);
+            return View(model);
+        }
 
+        public async Task<IActionResult> Details(Guid id)
+        {
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+            CustomerViewModel? model = await _customerService.GetCustomerByIdAsync(id, user.Id, isAdminOrMechanic);
+            if (model == null)
+            {
+                return NotFound();
+            }
+            return View(model);
+        }
+
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+            CustomerCreateViewModel? model = await _customerService.GetCustomerForEditAsync(id, user.Id, isAdminOrMechanic);
+            if (model == null)
+            {
+                return NotFound();
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Guid id, CustomerCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
             try
             {
-                CustomerIndexViewModel viewModel = await _customerService.GetCustomersAsync(page, 5, searchTerm);
-                return View(viewModel);
+                await _customerService.UpdateCustomerAsync(id, model, user.Id, isAdminOrMechanic);
+                return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException)
             {
-                _logger.LogError(ex, "Error fetching customers for Index");
-                return RedirectToAction("Error", "Home", new { statusCode = 500 });
+                return Forbid();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred while updating the customer.");
+                return View(model);
             }
         }
 
-        public async Task<IActionResult> Details(Guid? id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            if (id == null)
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+            CustomerViewModel? model = await _customerService.GetCustomerByIdAsync(id, user.Id, isAdminOrMechanic);
+            if (model == null)
             {
-                _logger.LogWarning("Details action called with null ID");
-                return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                return NotFound();
             }
+            return View(model);
+        }
 
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
             try
             {
-                CustomerViewModel? viewModel = await _customerService.GetCustomerByIdAsync(id.Value);
-                if (viewModel == null)
-                {
-                    _logger.LogWarning("Customer with ID {Id} not found", id);
-                    return RedirectToAction("Error", "Home", new { statusCode = 404 });
-                }
-                return View(viewModel);
+                await _customerService.DeleteCustomerAsync(id, user.Id, isAdminOrMechanic);
+                return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException)
             {
-                _logger.LogError(ex, "Error fetching customer details for ID {Id}", id);
-                return RedirectToAction("Error", "Home", new { statusCode = 500 });
+                return Forbid();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred while deleting the customer.");
+                return RedirectToAction("Details", new { id });
             }
         }
     }
 }
-

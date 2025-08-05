@@ -42,6 +42,7 @@ namespace AutoServiceCenter.Web
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<IServiceService, ServiceService>();
             builder.Services.AddScoped<IMechanicService, MechanicService>();
+            builder.Services.AddScoped<ICustomerService, CustomerService>();
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();

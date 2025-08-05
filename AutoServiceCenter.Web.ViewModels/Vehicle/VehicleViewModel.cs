@@ -3,9 +3,9 @@
     public class VehicleViewModel
     {
         public Guid Id { get; set; }
-        public string Make { get; set; } = string.Empty;
-        public string Model { get; set; } = string.Empty;
+        public string Make { get; set; } = null!;
+        public string Model { get; set; } = null!;
         public int Year { get; set; }
-        public string LicensePlate { get; set; } = string.Empty;
+        public string LicensePlate { get; set; } = null!;
     }
 }

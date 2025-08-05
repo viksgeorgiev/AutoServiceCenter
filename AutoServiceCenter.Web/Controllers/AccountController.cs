@@ -1,12 +1,12 @@
 ﻿using AutoServiceCenter.Data;
 using AutoServiceCenter.Data.Models;
-using AutoServiceCenter.GCommon;
+using AutoServiceCenter.Services.Core.Contracts;
+using AutoServiceCenter.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace AutoServiceCenter.Web.Controllers
 {
@@ -15,17 +15,20 @@ namespace AutoServiceCenter.Web.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ApplicationDbContext _context;
+        private readonly ICustomerService _customerService;
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             ApplicationDbContext context,
+            ICustomerService customerService,
             ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
+            _customerService = customerService;
             _logger = logger;
         }
 
@@ -45,14 +48,14 @@ namespace AutoServiceCenter.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user, model.Password);
+                IdentityUser user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                IdentityResult result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with email {Email}", model.Email);
 
-                    var customer = new Customer
+                    Customer customer = new Customer
                     {
                         Id = Guid.NewGuid(),
                         Name = model.Name,
@@ -61,7 +64,7 @@ namespace AutoServiceCenter.Web.Controllers
                         IsDeleted = false
                     };
 
-                    var vehicle = new Vehicle
+                    Vehicle vehicle = new Vehicle
                     {
                         Id = Guid.NewGuid(),
                         CustomerId = customer.Id,
@@ -86,10 +89,11 @@ namespace AutoServiceCenter.Web.Controllers
                     }
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
+                    _logger.LogInformation("User {UserId} signed in after registration", user.Id);
                     return LocalRedirect(returnUrl ?? Url.Content("~/"));
                 }
 
-                foreach (var error in result.Errors)
+                foreach (IdentityError error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
@@ -114,21 +118,12 @@ namespace AutoServiceCenter.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                SignInResult result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in with email {Email}", model.Email);
                     return LocalRedirect(returnUrl ?? Url.Content("~/"));
                 }
-                //if (result.RequiresTwoFactor)
-                //{
-                //    return RedirectToAction("LoginWith2fa", new { ReturnUrl = returnUrl, model.RememberMe });
-                //}
-                //if (result.IsLockedOut)
-                //{
-                //    _logger.LogWarning("User account locked out for email {Email}", model.Email);
-                //    return RedirectToAction("Lockout");
-                //}
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
@@ -139,25 +134,126 @@ namespace AutoServiceCenter.Web.Controllers
             return View(model);
         }
 
-        //[HttpGet]
-        //[AllowAnonymous]
-        //public IActionResult Lockout()
-        //{
-        //    return View();
-        //}
 
-        //[HttpGet]
-        //[AllowAnonymous]
-        //public IActionResult LoginWith2fa()
-        //{
-        //    return View();
-        //}
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Manage()
+        {
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for manage page");
+                return NotFound();
+            }
 
-        //[HttpGet]
-        //public IActionResult Manage()
-        //{
-        //    return View();
-        //}
+            Customer? customer = await _context.Customers
+                .Include(c => c.Vehicles)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id && !c.IsDeleted);
+
+            if (customer == null)
+            {
+                _logger.LogWarning("Customer not found for user {UserId}", user.Id);
+                return NotFound();
+            }
+
+            Vehicle? vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
+
+            ManageViewModel model = new ManageViewModel
+            {
+                Name = customer.Name,
+                Email = user.Email,
+                Address = customer.Address,
+                VehicleMake = vehicle?.Make ?? string.Empty,
+                VehicleModel = vehicle?.Model ?? string.Empty,
+                VehicleYear = vehicle?.Year ?? 0,
+                VehicleLicensePlate = vehicle?.LicensePlate ?? string.Empty,
+                VehicleId = vehicle?.Id ?? Guid.Empty
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Manage(ManageViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for manage update");
+                return NotFound();
+            }
+
+            Customer? customer = await _context.Customers
+                .Include(c => c.Vehicles)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id && !c.IsDeleted);
+
+            if (customer == null)
+            {
+                _logger.LogWarning("Customer not found for user {UserId}", user.Id);
+                return NotFound();
+            }
+
+            if (user.Email != model.Email)
+            {
+                user.Email = model.Email;
+                user.UserName = model.Email;
+                IdentityResult result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    foreach (IdentityError error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                    return View(model);
+                }
+            }
+
+            customer.Name = model.Name;
+            customer.Address = model.Address;
+
+            Vehicle? vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
+            if (vehicle != null)
+            {
+                vehicle.Make = model.VehicleMake;
+                vehicle.Model = model.VehicleModel;
+                vehicle.Year = model.VehicleYear;
+                vehicle.LicensePlate = model.VehicleLicensePlate;
+            }
+            else
+            {
+                vehicle = new Vehicle
+                {
+                    Id = Guid.NewGuid(),
+                    CustomerId = customer.Id,
+                    Make = model.VehicleMake,
+                    Model = model.VehicleModel,
+                    Year = model.VehicleYear,
+                    LicensePlate = model.VehicleLicensePlate,
+                    IsDeleted = false
+                };
+                _context.Vehicles.Add(vehicle);
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Updated customer profile for user {UserId}", user.Id);
+                return RedirectToAction("Manage");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update customer profile for user {UserId}", user.Id);
+                ModelState.AddModelError(string.Empty, "An error occurred while updating your profile.");
+                return View(model);
+            }
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -167,68 +263,5 @@ namespace AutoServiceCenter.Web.Controllers
             _logger.LogInformation("User logged out.");
             return LocalRedirect(returnUrl ?? Url.Content("~/"));
         }
-    }
-
-    public class RegisterViewModel
-    {
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; } = null!;
-
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = null!;
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = null!;
-
-        [Required]
-        [StringLength(ValidationConstants.Customer.NameMaxLength, ErrorMessage = "The {0} must be at most {1} characters long.")]
-        [Display(Name = "Name")]
-        public string Name { get; set; } = null!;
-
-        [Required]
-        [StringLength(ValidationConstants.Customer.AddressMaxLength, ErrorMessage = "The {0} must be at most {1} characters long.")]
-        [Display(Name = "Address")]
-        public string Address { get; set; } = null!;
-
-        [Required]
-        [StringLength(ValidationConstants.Vehicle.MakeMaxLength, ErrorMessage = "The {0} must be at most {1} characters long.")]
-        [Display(Name = "Vehicle Make")]
-        public string VehicleMake { get; set; } = null!;
-
-        [Required]
-        [StringLength(ValidationConstants.Vehicle.ModelMaxLength, ErrorMessage = "The {0} must be at most {1} characters long.")]
-        [Display(Name = "Vehicle Model")]
-        public string VehicleModel { get; set; } = null!;
-
-        [Required]
-        [Range(ValidationConstants.Vehicle.YearMinValue, ValidationConstants.Vehicle.YearMaxValue, ErrorMessage = "The {0} must be between {1} and {2}.")]
-        [Display(Name = "Vehicle Year")]
-        public int VehicleYear { get; set; }
-
-        [Required]
-        [StringLength(ValidationConstants.Vehicle.LicensePlateMaxLength, ErrorMessage = "The {0} must be at most {1} characters long.")]
-        [Display(Name = "Vehicle License Plate")]
-        public string VehicleLicensePlate { get; set; } = null!;
-    }
-
-    public class LoginViewModel
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = null!;
-
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; } = null!;
-
-        [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
     }
 }
