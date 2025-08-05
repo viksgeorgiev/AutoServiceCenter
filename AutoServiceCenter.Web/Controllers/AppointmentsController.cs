@@ -1,35 +1,44 @@
-﻿using AutoServiceCenter.Data;
-using AutoServiceCenter.Data.Common.Enums;
+﻿using AutoServiceCenter.Data.Common.Enums;
 using AutoServiceCenter.Services.Core.Contracts;
+using AutoServiceCenter.Web.ViewModels;
 using AutoServiceCenter.Web.ViewModels.Appointment;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutoServiceCenter.Web.Controllers
 {
+    [Authorize]
     public class AppointmentsController : BaseController
     {
         private readonly IAppointmentService _appointmentService;
-        private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly ILogger<AppointmentsController> _logger;
 
-        public AppointmentsController(IAppointmentService appointmentService, ApplicationDbContext context, ILogger<AppointmentsController> logger)
+        public AppointmentsController(IAppointmentService appointmentService, UserManager<IdentityUser> userManager, ILogger<AppointmentsController> logger)
         {
             _appointmentService = appointmentService;
-            _context = context;
+            _userManager = userManager;
             _logger = logger;
         }
 
-        [AllowAnonymous]
         public async Task<IActionResult> Index(int page = 1, string searchTerm = "")
         {
             _logger.LogInformation("Accessing Appointments/Index with page {Page} and search term {SearchTerm}", page, searchTerm);
 
             try
             {
-                AppointmentIndexViewModel viewModel = await _appointmentService.GetAppointmentsAsync(page, 5, searchTerm);
+                IdentityUser? user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    _logger.LogWarning("User not found for Appointments/Index");
+                    return Redirect("/Identity/Account/Login");
+                }
+
+                bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+                string userId = GetUserId();
+
+                AppointmentIndexViewModel viewModel = await _appointmentService.GetAppointmentsAsync(page, 5, userId, isAdminOrMechanic, searchTerm);
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -39,7 +48,6 @@ namespace AutoServiceCenter.Web.Controllers
             }
         }
 
-        [AllowAnonymous]
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -50,11 +58,15 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                AppointmentViewModel? viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value);
+                IdentityUser? user = await _userManager.GetUserAsync(User);
+                bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+                string userId = GetUserId();
+
+                AppointmentViewModel? viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value, userId, isAdminOrMechanic);
                 if (viewModel == null)
                 {
-                    _logger.LogWarning("Appointment with ID {Id} not found", id);
-                    return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                    _logger.LogWarning("Appointment with ID {Id} not found or unauthorized", id);
+                    return RedirectToAction("Error", "Home", new { statusCode = 403 });
                 }
                 return View(viewModel);
             }
@@ -67,35 +79,61 @@ namespace AutoServiceCenter.Web.Controllers
 
         public async Task<IActionResult> Create()
         {
-            await PopulateDropdowns();
-            return View(new AppointmentCreateViewModel());
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+            string userId = GetUserId();
+
+            AppointmentCreateViewModel model = new AppointmentCreateViewModel { AppointmentDate = DateTime.Now };
+
+            if (!isAdminOrMechanic)
+            {
+                List<DropdownItem> customers = await _appointmentService.GetCustomersAsync(false, userId);
+                DropdownItem? customer = customers.FirstOrDefault();
+                if (customer != null)
+                {
+                    model.CustomerId = Guid.Parse(customer.Value);
+                }
+                else
+                {
+                    _logger.LogWarning("No customer found for user {UserId}", userId);
+                    ModelState.AddModelError("", "No customer profile found. Please contact support.");
+                    await PopulateDropdowns(isAdminOrMechanic, userId);
+                    return View(model);
+                }
+            }
+
+            await PopulateDropdowns(isAdminOrMechanic, userId);
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AppointmentCreateViewModel model)
         {
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+            string userId = GetUserId();
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _appointmentService.CreateAppointmentAsync(model, GetUserId());
+                    await _appointmentService.CreateAppointmentAsync(model, userId, isAdminOrMechanic);
                     return RedirectToAction(nameof(Index));
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    _logger.LogWarning("Unauthorized attempt to create appointment by user {UserId}", userId);
+                    ModelState.AddModelError("", "You are not authorized to create this appointment.");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error creating appointment");
+                    _logger.LogError(ex, "Error creating appointment by user {UserId}", userId);
                     ModelState.AddModelError("", "An error occurred while creating the appointment.");
                 }
             }
 
-            await PopulateDropdowns();
-
-            model = new AppointmentCreateViewModel
-            {
-                AppointmentDate = DateTime.Now  
-            };
-
+            await PopulateDropdowns(isAdminOrMechanic, userId);
             return View(model);
         }
 
@@ -109,14 +147,18 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                AppointmentCreateViewModel? viewModel = await _appointmentService.GetAppointmentForEditAsync(id.Value);
+                IdentityUser? user = await _userManager.GetUserAsync(User);
+                bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+                string userId = GetUserId();
+
+                AppointmentCreateViewModel? viewModel = await _appointmentService.GetAppointmentForEditAsync(id.Value, userId, isAdminOrMechanic);
                 if (viewModel == null)
                 {
-                    _logger.LogWarning("Appointment with ID {Id} not found for edit", id);
-                    return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                    _logger.LogWarning("Appointment with ID {Id} not found or unauthorized for edit", id);
+                    return RedirectToAction("Error", "Home", new { statusCode = 403 });
                 }
 
-                await PopulateDropdowns();
+                await PopulateDropdowns(isAdminOrMechanic, userId);
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -136,12 +178,21 @@ namespace AutoServiceCenter.Web.Controllers
                 return RedirectToAction("Error", "Home", new { statusCode = 404 });
             }
 
+            IdentityUser? user = await _userManager.GetUserAsync(User);
+            bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+            string userId = GetUserId();
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _appointmentService.UpdateAppointmentAsync(id, model);
+                    await _appointmentService.UpdateAppointmentAsync(id, model, userId, isAdminOrMechanic);
                     return RedirectToAction(nameof(Index));
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    _logger.LogWarning("Unauthorized attempt to update appointment {Id} by user {UserId}", id, userId);
+                    ModelState.AddModelError("", "You are not authorized to update this appointment.");
                 }
                 catch (Exception ex)
                 {
@@ -150,7 +201,7 @@ namespace AutoServiceCenter.Web.Controllers
                 }
             }
 
-            await PopulateDropdowns();
+            await PopulateDropdowns(isAdminOrMechanic, userId);
             return View(model);
         }
 
@@ -164,11 +215,15 @@ namespace AutoServiceCenter.Web.Controllers
 
             try
             {
-                AppointmentViewModel? viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value);
+                IdentityUser? user = await _userManager.GetUserAsync(User);
+                bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+                string userId = GetUserId();
+
+                AppointmentViewModel? viewModel = await _appointmentService.GetAppointmentByIdAsync(id.Value, userId, isAdminOrMechanic);
                 if (viewModel == null)
                 {
-                    _logger.LogWarning("Appointment with ID {Id} not found", id);
-                    return RedirectToAction("Error", "Home", new { statusCode = 404 });
+                    _logger.LogWarning("Appointment with ID {Id} not found or unauthorized for delete", id);
+                    return RedirectToAction("Error", "Home", new { statusCode = 403 });
                 }
                 return View(viewModel);
             }
@@ -185,8 +240,17 @@ namespace AutoServiceCenter.Web.Controllers
         {
             try
             {
-                await _appointmentService.DeleteAppointmentAsync(id);
+                IdentityUser? user = await _userManager.GetUserAsync(User);
+                bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
+                string userId = GetUserId();
+
+                await _appointmentService.DeleteAppointmentAsync(id, userId, isAdminOrMechanic);
                 return RedirectToAction(nameof(Index));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _logger.LogWarning("Unauthorized attempt to delete appointment {Id} by user {UserId}", id, GetUserId());
+                return RedirectToAction("Error", "Home", new { statusCode = 403 });
             }
             catch (Exception ex)
             {
@@ -195,39 +259,18 @@ namespace AutoServiceCenter.Web.Controllers
             }
         }
 
-        private async Task PopulateDropdowns()
+        private async Task PopulateDropdowns(bool isAdminOrMechanic, string userId)
         {
-            ViewBag.Customers = new SelectList(
-                await _context.Customers
-                    .Include(c => c.User)
-                    .Where(c => !c.IsDeleted)
-                    .Select(c => new { Id = c.Id, Name = c.User.UserName })
-                    .ToListAsync(),
-                "Id", "Name");
-
-            ViewBag.Vehicles = new SelectList(
-                await _context.Vehicles
-                    .Where(v => !v.IsDeleted)
-                    .Select(v => new { Id = v.Id, LicensePlate = v.LicensePlate })
-                    .ToListAsync(),
-                "Id", "LicensePlate");
-
-            ViewBag.Services = new SelectList(
-                await _context.Services
-                    .Where(s => !s.IsDeleted)
-                    .Select(s => new { Id = s.Id, Name = s.Name })
-                    .ToListAsync(),
-                "Id", "Name");
-
-            ViewBag.Mechanics = new SelectList(
-                await _context.Mechanics
-                    .Include(m => m.User)
-                    .Where(m => !m.IsDeleted)
-                    .Select(m => new { Id = m.Id, Name = m.User.UserName })
-                    .ToListAsync(),
-                "Id", "Name");
-
-            ViewBag.Statuses = new SelectList(Enum.GetValues(typeof(AppointmentStatus)));
+            ViewBag.Customers = await _appointmentService.GetCustomersAsync(isAdminOrMechanic, userId);
+            ViewBag.Vehicles = await _appointmentService.GetVehiclesAsync(isAdminOrMechanic, userId);
+            ViewBag.Services = await _appointmentService.GetServicesAsync();
+            ViewBag.Mechanics = await _appointmentService.GetMechanicsAsync();
+            ViewBag.Statuses = Enum.GetValues(typeof(AppointmentStatus)).Cast<AppointmentStatus>().Select(s => new DropdownItem
+            {
+                Value = s.ToString(),
+                Text = s.ToString()
+            }).ToList();
+            ViewBag.IsAdminOrMechanic = isAdminOrMechanic;
         }
     }
 }

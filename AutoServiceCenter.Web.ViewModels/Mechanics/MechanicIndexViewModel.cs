@@ -1,6 +1,4 @@
-﻿using AutoServiceCenter.Web.ViewModels.Mechanics;
-
-namespace AutoServiceCenter.Web.ViewModels.Mechanics
+﻿namespace AutoServiceCenter.Web.ViewModels.Mechanics
 {
     public class MechanicIndexViewModel
     {

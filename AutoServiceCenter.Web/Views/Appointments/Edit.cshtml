@@ -1,87 +1,100 @@
 ﻿@model AutoServiceCenter.Web.ViewModels.Appointment.AppointmentCreateViewModel
 @{
     ViewData["Title"] = "Edit Appointment";
+    bool isAdminOrMechanic = ViewBag.IsAdminOrMechanic;
 }
 @section Styles {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
-}
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $("#appointmentForm").validate({
-                rules: {
-                    CustomerId: { required: true },
-                    VehicleId: { required: true },
-                    ServiceId: { required: true },
-                    MechanicId: { required: true },
-                    AppointmentDate: { required: true, date: true },
-                    Notes: { maxlength: @AutoServiceCenter.GCommon.ValidationConstants.Appointment.NotesMaxLength }
-                },
-                messages: {
-                    CustomerId: "Please select a customer",
-                    VehicleId: "Please select a vehicle",
-                    ServiceId: "Please select a service",
-                    MechanicId: "Please select a mechanic",
-                    AppointmentDate: {
-                        required: "Please select an appointment date",
-                        date: "Please enter a valid date"
-                    },
-                    Notes: "Notes cannot exceed @AutoServiceCenter.GCommon.ValidationConstants.Appointment.NotesMaxLength characters"
-                }
-            });
-        });
-    </script>
+    <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" asp-fallback-href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" asp-fallback-test-class="btn" asp-fallback-test-property="display" asp-fallback-test-value="inline-block" />
 }
 
 <div class="container mt-5">
     <h1>@ViewData["Title"]</h1>
-    <div class="row">
-        <div class="col-md-6">
-            <form id="appointmentForm" asp-action="Edit" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <input type="hidden" asp-for="Id" />
-                <div class="form-group mb-3">
-                    <label asp-for="CustomerId" class="form-label"></label>
-                    <select asp-for="CustomerId" class="form-control" asp-items="ViewBag.Customers"></select>
-                    <span asp-validation-for="CustomerId" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="VehicleId" class="form-label"></label>
-                    <select asp-for="VehicleId" class="form-control" asp-items="ViewBag.Vehicles"></select>
-                    <span asp-validation-for="VehicleId" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="ServiceId" class="form-label"></label>
-                    <select asp-for="ServiceId" class="form-control" asp-items="ViewBag.Services"></select>
-                    <span asp-validation-for="ServiceId" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="MechanicId" class="form-label"></label>
-                    <select asp-for="MechanicId" class="form-control" asp-items="ViewBag.Mechanics"></select>
-                    <span asp-validation-for="MechanicId" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="AppointmentDate" class="form-label"></label>
-                    <input asp-for="AppointmentDate" class="form-control" type="datetime-local" />
-                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="Status" class="form-label"></label>
-                    <select asp-for="Status" class="form-control" asp-items="ViewBag.Statuses"></select>
-                    <span asp-validation-for="Status" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="Notes" class="form-label"></label>
-                    <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
-                    <span asp-validation-for="Notes" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-3">
-                    <button type="submit" class="btn btn-success">Save</button>
-                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="mb-3">
+            <label asp-for="CustomerId" class="form-label">Customer</label>
+            @if (isAdminOrMechanic)
+            {
+                <select asp-for="CustomerId" class="form-select">
+                    <option value="">Select Customer</option>
+                    @foreach (DropdownItem item in ViewBag.Customers as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+                    {
+                        <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
+                    }
+                </select>
+            }
+            else
+            {
+                <input type="hidden" asp-for="CustomerId" />
+                <input type="text" class="form-control" value="@((ViewBag.Customers as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)?.FirstOrDefault()?.Text)" disabled />
+            }
+            <span asp-validation-for="CustomerId" class="text-danger"></span>
         </div>
-    </div>
+        <div class="mb-3">
+            <label asp-for="VehicleId" class="form-label">Vehicle</label>
+            <select asp-for="VehicleId" class="form-select">
+                <option value="">Select Vehicle</option>
+                @foreach (DropdownItem item in ViewBag.Vehicles as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+            <span asp-validation-for="VehicleId" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ServiceId" class="form-label">Service</label>
+            <select asp-for="ServiceId" class="form-select">
+                <option value="">Select Service</option>
+                @foreach (DropdownItem item in ViewBag.Services as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+            <span asp-validation-for="ServiceId" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="MechanicId" class="form-label">Mechanic</label>
+            <select asp-for="MechanicId" class="form-select">
+                <option value="">Select Mechanic</option>
+                @foreach (DropdownItem item in ViewBag.Mechanics as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+            <span asp-validation-for="MechanicId" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+	        <label asp-for="AppointmentDate" class="form-label">Appointment Date</label>
+	        <input asp-for="AppointmentDate" class="form-control" type="datetime-local" />
+	        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+        </div>
+        @if (isAdminOrMechanic)
+        {
+	        <div class="mb-3">
+		        <label asp-for="Status" class="form-label">Status</label>
+		        <select asp-for="Status" class="form-select">
+			        @foreach (DropdownItem item in ViewBag.Statuses as List<DropdownItem>)
+			        {
+				        <option value="@item.Value">@item.Text</option>
+			        }
+		        </select>
+		        <span asp-validation-for="Status" class="text-danger"></span>
+	        </div>
+        }
+        <div class="mb-3">
+            <label asp-for="Notes" class="form-label">Notes</label>
+            <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Notes" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </form>
 </div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
+}

@@ -7,10 +7,10 @@ namespace AutoServiceCenter.Web.ViewModels.Appointment
     public class AppointmentViewModel
     {
         public Guid Id { get; set; }
-        public string CustomerName { get; set; } = string.Empty;
-        public string VehicleLicensePlate { get; set; } = string.Empty;
-        public string ServiceName { get; set; } = string.Empty;
-        public string MechanicName { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = null!;
+        public string VehicleLicensePlate { get; set; } = null!;
+        public string ServiceName { get; set; } = null!;
+        public string MechanicName { get; set; } = null!;
         public DateTime AppointmentDate { get; set; }
         public AppointmentStatus Status { get; set; }
         public string Notes { get; set; } = string.Empty;

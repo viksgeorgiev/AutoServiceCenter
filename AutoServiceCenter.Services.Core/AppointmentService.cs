@@ -1,7 +1,7 @@
 ﻿using AutoServiceCenter.Data;
-using AutoServiceCenter.Data.Common.Enums;
 using AutoServiceCenter.Data.Models;
 using AutoServiceCenter.Services.Core.Contracts;
+using AutoServiceCenter.Web.ViewModels;
 using AutoServiceCenter.Web.ViewModels.Appointment;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,9 +19,9 @@ namespace AutoServiceCenter.Services.Core
             _logger = logger;
         }
 
-        public async Task<AppointmentIndexViewModel> GetAppointmentsAsync(int page, int pageSize, string searchTerm)
+        public async Task<AppointmentIndexViewModel> GetAppointmentsAsync(int page, int pageSize, string userId, bool isAdminOrMechanic, string searchTerm)
         {
-            _logger.LogInformation("Fetching appointments for page {Page} with search term {SearchTerm}", page, searchTerm);
+            _logger.LogInformation("Fetching appointments for page {Page}, user {UserId}, isAdminOrMechanic: {IsAdminOrMechanic}, searchTerm: {SearchTerm}", page, userId, isAdminOrMechanic, searchTerm);
 
             IQueryable<Appointment> query = _context.Appointments
                 .Include(a => a.Customer).ThenInclude(c => c.User)
@@ -29,6 +29,11 @@ namespace AutoServiceCenter.Services.Core
                 .Include(a => a.Service)
                 .Include(a => a.Mechanic).ThenInclude(m => m.User)
                 .Where(a => !a.IsDeleted);
+
+            if (!isAdminOrMechanic)
+            {
+                query = query.Where(a => a.Customer.UserId == userId);
+            }
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
@@ -41,34 +46,33 @@ namespace AutoServiceCenter.Services.Core
             }
 
             int totalItems = await query.CountAsync();
-            List<Appointment> appointments = await query
+            List<AppointmentViewModel> appointments = await query
                 .OrderBy(a => a.Date)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
-
-            AppointmentIndexViewModel viewModel = new AppointmentIndexViewModel
-            {
-                Appointments = appointments.Select(a => new AppointmentViewModel
+                .Select(a => new AppointmentViewModel
                 {
                     Id = a.Id,
-                    CustomerName = a.Customer?.User?.UserName ?? "N/A",
-                    VehicleLicensePlate = a.Vehicle?.LicensePlate ?? "N/A",
-                    ServiceName = a.Service?.Name ?? "N/A",
-                    MechanicName = a.Mechanic?.User?.UserName ?? "N/A",
+                    CustomerName = a.Customer.User.UserName ?? "N/A",
+                    VehicleLicensePlate = a.Vehicle.LicensePlate,
+                    ServiceName = a.Service.Name ,
+                    MechanicName = a.Mechanic.User.UserName ?? "N/A",
                     AppointmentDate = a.Date,
                     Status = a.Status,
                     Notes = a.Notes
-                }).ToList(),
+                })
+                .ToListAsync();
+
+            return new AppointmentIndexViewModel
+            {
+                Appointments = appointments,
                 CurrentPage = page,
                 TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
                 SearchTerm = searchTerm
             };
-
-            return viewModel;
         }
 
-        public async Task<AppointmentViewModel> GetAppointmentByIdAsync(Guid id)
+        public async Task<AppointmentViewModel> GetAppointmentByIdAsync(Guid id, string userId, bool isAdminOrMechanic)
         {
             Appointment? appointment = await _context.Appointments
                 .Include(a => a.Customer).ThenInclude(c => c.User)
@@ -77,9 +81,9 @@ namespace AutoServiceCenter.Services.Core
                 .Include(a => a.Mechanic).ThenInclude(m => m.User)
                 .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
-            if (appointment == null)
+            if (appointment == null || (!isAdminOrMechanic && appointment.Customer.UserId != userId))
             {
-                _logger.LogWarning("Appointment with ID {Id} not found", id);
+                _logger.LogWarning("Appointment with ID {Id} not found or unauthorized for user {UserId}", id, userId);
                 return null;
             }
 
@@ -96,10 +100,16 @@ namespace AutoServiceCenter.Services.Core
             };
         }
 
-        public async Task CreateAppointmentAsync(AppointmentCreateViewModel model, string userId)
+        public async Task CreateAppointmentAsync(AppointmentCreateViewModel model, string userId, bool isAdminOrMechanic)
         {
             try
             {
+                Customer? customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == model.CustomerId && !c.IsDeleted);
+                if (!isAdminOrMechanic && customer?.UserId != userId)
+                {
+                    throw new UnauthorizedAccessException("User can only create appointments for themselves");
+                }
+
                 Appointment appointment = new Appointment
                 {
                     Id = Guid.NewGuid(),
@@ -108,7 +118,7 @@ namespace AutoServiceCenter.Services.Core
                     ServiceId = model.ServiceId,
                     MechanicId = model.MechanicId,
                     Date = model.AppointmentDate,
-                    Status = AppointmentStatus.Pending,
+                    Status = model.Status,
                     Notes = model.Notes ?? string.Empty,
                     IsDeleted = false,
                     DeletedOn = null
@@ -125,14 +135,15 @@ namespace AutoServiceCenter.Services.Core
             }
         }
 
-        public async Task<AppointmentCreateViewModel> GetAppointmentForEditAsync(Guid id)
+        public async Task<AppointmentCreateViewModel> GetAppointmentForEditAsync(Guid id, string userId, bool isAdminOrMechanic)
         {
             Appointment? appointment = await _context.Appointments
+                .Include(a => a.Customer)
                 .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
-            if (appointment == null)
+            if (appointment == null || (!isAdminOrMechanic && appointment.Customer.UserId != userId))
             {
-                _logger.LogWarning("Appointment with ID {Id} not found for edit", id);
+                _logger.LogWarning("Appointment with ID {Id} not found or unauthorized for user {UserId}", id, userId);
                 return null;
             }
 
@@ -149,17 +160,18 @@ namespace AutoServiceCenter.Services.Core
             };
         }
 
-        public async Task UpdateAppointmentAsync(Guid id, AppointmentCreateViewModel model)
+        public async Task UpdateAppointmentAsync(Guid id, AppointmentCreateViewModel model, string userId, bool isAdminOrMechanic)
         {
             try
             {
                 Appointment? appointment = await _context.Appointments
+                    .Include(a => a.Customer)
                     .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
-                if (appointment == null)
+                if (appointment == null || (!isAdminOrMechanic && appointment.Customer.UserId != userId))
                 {
-                    _logger.LogWarning("Appointment with ID {Id} not found for update", id);
-                    throw new KeyNotFoundException("Appointment not found");
+                    _logger.LogWarning("Appointment with ID {Id} not found or unauthorized for user {UserId}", id, userId);
+                    throw new UnauthorizedAccessException("User can only update their own appointments");
                 }
 
                 appointment.CustomerId = model.CustomerId;
@@ -172,7 +184,7 @@ namespace AutoServiceCenter.Services.Core
 
                 _context.Update(appointment);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Updated appointment with ID {Id}", id);
+                _logger.LogInformation("Updated appointment with ID {Id} by user {UserId}", id, userId);
             }
             catch (Exception ex)
             {
@@ -181,30 +193,97 @@ namespace AutoServiceCenter.Services.Core
             }
         }
 
-        public async Task DeleteAppointmentAsync(Guid id)
+        public async Task DeleteAppointmentAsync(Guid id, string userId, bool isAdminOrMechanic)
         {
             try
             {
                 Appointment? appointment = await _context.Appointments
+                    .Include(a => a.Customer)
                     .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
-                if (appointment == null)
+                if (appointment == null || (!isAdminOrMechanic && appointment.Customer.UserId != userId))
                 {
-                    _logger.LogWarning("Appointment with ID {Id} not found for deletion", id);
-                    throw new KeyNotFoundException("Appointment not found");
+                    _logger.LogWarning("Appointment with ID {Id} not found or unauthorized for user {UserId}", id, userId);
+                    throw new UnauthorizedAccessException("User can only delete their own appointments");
                 }
 
                 appointment.IsDeleted = true;
                 appointment.DeletedOn = DateTime.UtcNow;
                 _context.Update(appointment);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Deleted appointment with ID {Id}", id);
+                _logger.LogInformation("Deleted appointment with ID {Id} by user {UserId}", id, userId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting appointment with ID {Id}", id);
                 throw;
             }
+        }
+
+        public async Task<List<DropdownItem>> GetCustomersAsync(bool isAdminOrMechanic, string userId)
+        {
+            IQueryable<Customer> query = _context.Customers
+                .Include(c => c.User)
+                .Where(c => !c.IsDeleted);
+
+            if (!isAdminOrMechanic)
+            {
+                query = query.Where(c => c.UserId == userId);
+            }
+
+            return await query
+                .Select(c => new DropdownItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.User.UserName,
+                    Selected = !isAdminOrMechanic && c.UserId == userId
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<DropdownItem>> GetVehiclesAsync(bool isAdminOrMechanic, string userId)
+        {
+            IQueryable<Vehicle> query = _context.Vehicles
+                .Include(v => v.Customer)
+                .Where(v => !v.IsDeleted);
+
+            if (!isAdminOrMechanic)
+            {
+                query = query.Where(v => v.Customer.UserId == userId);
+            }
+
+            return await query
+                .Select(v => new DropdownItem
+                {
+                    Value = v.Id.ToString(),
+                    Text = v.LicensePlate
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<DropdownItem>> GetServicesAsync()
+        {
+            return await _context.Services
+                .Where(s => !s.IsDeleted)
+                .Select(s => new DropdownItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<DropdownItem>> GetMechanicsAsync()
+        {
+            return await _context.Mechanics
+                .Include(m => m.User)
+                .Where(m => !m.IsDeleted)
+                .Select(m => new DropdownItem
+                {
+                    Value = m.Id.ToString(),
+                    Text = m.User.UserName
+                })
+                .ToListAsync();
         }
     }
 }
