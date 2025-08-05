@@ -27,9 +27,9 @@ namespace AutoServiceCenter.Services.Core
             _logger.LogInformation("Fetching mechanics for page {Page}", page);
 
             IQueryable<Mechanic> query = _context.Mechanics
+                .AsNoTracking() // Added for read-only operation
                 .Include(m => m.User)
-                .Include(m => m.Appointments)
-                .Where(m => !m.IsDeleted);
+                .Include(m => m.Appointments);
 
             int totalItems = await query.CountAsync();
             List<Mechanic> mechanics = await query
@@ -59,6 +59,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task<MechanicViewModel> GetMechanicByIdAsync(Guid id)
         {
             Mechanic? mechanic = await _context.Mechanics
+                .AsNoTracking() 
                 .Include(m => m.User)
                 .Include(m => m.Appointments)
                     .ThenInclude(a => a.Customer)
@@ -67,7 +68,7 @@ namespace AutoServiceCenter.Services.Core
                     .ThenInclude(a => a.Vehicle)
                 .Include(m => m.Appointments)
                     .ThenInclude(a => a.Service)
-                .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (mechanic == null)
             {
@@ -137,8 +138,9 @@ namespace AutoServiceCenter.Services.Core
         public async Task<MechanicCreateViewModel> GetMechanicForEditAsync(Guid id)
         {
             Mechanic? mechanic = await _context.Mechanics
+                .AsNoTracking() 
                 .Include(m => m.User)
-                .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (mechanic == null)
             {
@@ -160,7 +162,7 @@ namespace AutoServiceCenter.Services.Core
         {
             Mechanic? mechanic = await _context.Mechanics
                 .Include(m => m.User)
-                .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (mechanic == null)
             {

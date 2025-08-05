@@ -34,7 +34,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         public async Task<IActionResult> ManageRoles(int page = 1, string searchTerm = "")
         {
             int pageSize = 10;
-            var usersQuery = _userManager.Users.AsQueryable();
+            IQueryable<IdentityUser> usersQuery = _userManager.Users.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
@@ -42,17 +42,17 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
                 usersQuery = usersQuery.Where(u => u.Email.ToLower().Contains(searchTerm) || u.UserName.ToLower().Contains(searchTerm));
             }
 
-            var totalItems = await usersQuery.CountAsync();
-            var users = await usersQuery
+            int totalItems = await usersQuery.CountAsync();
+            List<IdentityUser> users = await usersQuery
                 .OrderBy(u => u.Email)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            var userViewModels = new List<UserRoleViewModel>();
-            foreach (var user in users)
+            List<UserRoleViewModel> userViewModels = new List<UserRoleViewModel>();
+            foreach (IdentityUser user in users)
             {
-                var roles = await _userManager.GetRolesAsync(user);
+                IList<string> roles = await _userManager.GetRolesAsync(user);
                 userViewModels.Add(new UserRoleViewModel
                 {
                     UserId = user.Id,
@@ -61,7 +61,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
                 });
             }
 
-            var model = new UserRoleIndexViewModel
+            UserRoleIndexViewModel model = new UserRoleIndexViewModel
             {
                 Users = userViewModels,
                 CurrentPage = page,
@@ -75,17 +75,17 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> EditRoles(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            IdentityUser? user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 _logger.LogWarning("User with ID {UserId} not found", id);
                 return NotFound();
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
-            var allRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            List<string> allRoles = _roleManager.Roles.Select(r => r.Name).ToList();
 
-            var model = new EditUserRoleViewModel
+            EditUserRoleViewModel model = new EditUserRoleViewModel
             {
                 UserId = user.Id,
                 Email = user.Email,
@@ -100,20 +100,20 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditRoles(EditUserRoleViewModel model)
         {
-            var user = await _userManager.FindByIdAsync(model.UserId);
+            IdentityUser? user = await _userManager.FindByIdAsync(model.UserId);
             if (user == null)
             {
                 _logger.LogWarning("User with ID {UserId} not found", model.UserId);
                 return NotFound();
             }
 
-            var currentRoles = await _userManager.GetRolesAsync(user);
-            var rolesToAdd = model.SelectedRoles?.Except(currentRoles).ToList() ?? new List<string>();
-            var rolesToRemove = currentRoles.Except(model.SelectedRoles ?? new List<string>()).ToList();
+            IList<string> currentRoles = await _userManager.GetRolesAsync(user);
+            List<string> rolesToAdd = model.SelectedRoles?.Except(currentRoles).ToList() ?? new List<string>();
+            List<string> rolesToRemove = currentRoles.Except(model.SelectedRoles ?? new List<string>()).ToList();
 
             if (rolesToAdd.Any() || rolesToRemove.Any())
             {
-                var addResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
+                IdentityResult addResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
                 if (!addResult.Succeeded)
                 {
                     _logger.LogError("Failed to add roles to user {UserId}: {Errors}", user.Id, string.Join(", ", addResult.Errors));
@@ -123,7 +123,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
                     return View(model);
                 }
 
-                var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+                IdentityResult removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
                 if (!removeResult.Succeeded)
                 {
                     _logger.LogError("Failed to remove roles from user {UserId}: {Errors}", user.Id, string.Join(", ", removeResult.Errors));

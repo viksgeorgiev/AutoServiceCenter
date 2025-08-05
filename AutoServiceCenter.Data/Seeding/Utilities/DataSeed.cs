@@ -56,7 +56,7 @@ namespace AutoServiceCenter.Data.Seeding.Utilities
                         await context.SaveChangesAsync();
 
                         // Seed Vehicle for Customer
-                        var customer = context.Customers.FirstOrDefault(c => c.UserId == regularUser.Id);
+                        Customer? customer = context.Customers.FirstOrDefault(c => c.UserId == regularUser.Id);
                         if (customer != null)
                         {
                             context.Vehicles.Add(new Vehicle

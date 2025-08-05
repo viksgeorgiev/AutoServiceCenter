@@ -28,10 +28,10 @@ namespace AutoServiceCenter.Services.Core
             _logger.LogInformation("Fetching customers for page {Page}, searchTerm: {SearchTerm}", page, searchTerm);
 
             IQueryable<Customer> query = _context.Customers
+                .AsNoTracking() 
                 .Include(c => c.User)
                 .Include(c => c.Vehicles)
-                .Include(c => c.Appointments)
-                .Where(c => !c.IsDeleted);
+                .Include(c => c.Appointments);
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
@@ -69,6 +69,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task<CustomerViewModel> GetCustomerByIdAsync(Guid id, string userId, bool isAdminOrMechanic)
         {
             Customer? customer = await _context.Customers
+                .AsNoTracking() 
                 .Include(c => c.User)
                 .Include(c => c.Vehicles)
                 .Include(c => c.Appointments)
@@ -78,7 +79,7 @@ namespace AutoServiceCenter.Services.Core
                 .Include(c => c.Appointments)
                     .ThenInclude(a => a.Mechanic)
                     .ThenInclude(m => m.User)
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (customer == null || (!isAdminOrMechanic && customer.UserId != userId))
             {
@@ -95,7 +96,6 @@ namespace AutoServiceCenter.Services.Core
                 VehicleCount = customer.Vehicles?.Count(v => !v.IsDeleted) ?? 0,
                 AppointmentCount = customer.Appointments?.Count(a => !a.IsDeleted) ?? 0,
                 Vehicles = customer.Vehicles?
-                    .Where(v => !v.IsDeleted)
                     .Select(v => new VehicleViewModel
                     {
                         Id = v.Id,
@@ -105,7 +105,6 @@ namespace AutoServiceCenter.Services.Core
                         LicensePlate = v.LicensePlate
                     }).ToList() ?? new List<VehicleViewModel>(),
                 Appointments = customer.Appointments?
-                    .Where(a => !a.IsDeleted)
                     .Select(a => new AppointmentViewModel
                     {
                         Id = a.Id,
@@ -124,8 +123,9 @@ namespace AutoServiceCenter.Services.Core
         public async Task<CustomerCreateViewModel> GetCustomerForEditAsync(Guid id, string userId, bool isAdminOrMechanic)
         {
             Customer? customer = await _context.Customers
+                .AsNoTracking() // Added for read-only operation
                 .Include(c => c.User)
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (customer == null || (!isAdminOrMechanic && customer.UserId != userId))
             {
@@ -146,7 +146,7 @@ namespace AutoServiceCenter.Services.Core
         {
             Customer? customer = await _context.Customers
                 .Include(c => c.User)
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (customer == null || (!isAdminOrMechanic && customer.UserId != userId))
             {
@@ -186,7 +186,7 @@ namespace AutoServiceCenter.Services.Core
                 .Include(c => c.User)
                 .Include(c => c.Vehicles)
                 .Include(c => c.Appointments)
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (customer == null || (!isAdminOrMechanic && customer.UserId != userId))
             {

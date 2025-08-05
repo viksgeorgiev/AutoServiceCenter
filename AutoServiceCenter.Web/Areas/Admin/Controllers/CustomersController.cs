@@ -22,15 +22,15 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Index(int page = 1, string searchTerm = "")
         {
             int pageSize = 10;
-            var model = await _customerService.GetCustomersAsync(page, pageSize, searchTerm);
+            CustomerIndexViewModel model = await _customerService.GetCustomersAsync(page, pageSize, searchTerm);
             return View(model);
         }
 
         public async Task<IActionResult> Details(Guid id)
         {
-            var user = await _userManager.GetUserAsync(User);
+            IdentityUser? user = await _userManager.GetUserAsync(User);
             bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
-            var model = await _customerService.GetCustomerByIdAsync(id, user.Id, isAdminOrMechanic);
+            CustomerViewModel? model = await _customerService.GetCustomerByIdAsync(id, user.Id, isAdminOrMechanic);
             if (model == null)
             {
                 return NotFound();
@@ -40,9 +40,9 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> Edit(Guid id)
         {
-            var user = await _userManager.GetUserAsync(User);
+            IdentityUser? user = await _userManager.GetUserAsync(User);
             bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
-            var model = await _customerService.GetCustomerForEditAsync(id, user.Id, isAdminOrMechanic);
+            CustomerCreateViewModel? model = await _customerService.GetCustomerForEditAsync(id, user.Id, isAdminOrMechanic);
             if (model == null)
             {
                 return NotFound();
@@ -59,7 +59,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
                 return View(model);
             }
 
-            var user = await _userManager.GetUserAsync(User);
+            IdentityUser? user = await _userManager.GetUserAsync(User);
             bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
             try
             {
@@ -79,9 +79,9 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> Delete(Guid id)
         {
-            var user = await _userManager.GetUserAsync(User);
+            IdentityUser? user = await _userManager.GetUserAsync(User);
             bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
-            var model = await _customerService.GetCustomerByIdAsync(id, user.Id, isAdminOrMechanic);
+            CustomerViewModel? model = await _customerService.GetCustomerByIdAsync(id, user.Id, isAdminOrMechanic);
             if (model == null)
             {
                 return NotFound();
@@ -93,7 +93,7 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var user = await _userManager.GetUserAsync(User);
+            IdentityUser? user = await _userManager.GetUserAsync(User);
             bool isAdminOrMechanic = await _userManager.IsInRoleAsync(user, "Administrator") || await _userManager.IsInRoleAsync(user, "Mechanic");
             try
             {

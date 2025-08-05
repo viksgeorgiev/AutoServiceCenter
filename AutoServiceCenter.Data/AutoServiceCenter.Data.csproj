@@ -8,8 +8,11 @@
 
   <ItemGroup>
     <Compile Remove="Repository\**" />
+    <Compile Remove="Seeding\Dtos\**" />
     <EmbeddedResource Remove="Repository\**" />
+    <EmbeddedResource Remove="Seeding\Dtos\**" />
     <None Remove="Repository\**" />
+    <None Remove="Seeding\Dtos\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,7 +28,6 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="Seeding\Dtos\" />
     <Folder Include="Seeding\Input\" />
   </ItemGroup>
 

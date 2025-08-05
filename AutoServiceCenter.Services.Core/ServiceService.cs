@@ -24,8 +24,8 @@ namespace AutoServiceCenter.Services.Core
             _logger.LogInformation("Fetching services for page {Page}", page);
 
             IQueryable<Service> query = _context.Services
-                .Include(s => s.Appointments)
-                .Where(s => !s.IsDeleted);
+                .AsNoTracking() 
+                .Include(s => s.Appointments);
 
             int totalItems = await query.CountAsync();
             List<Service> services = await query
@@ -54,6 +54,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task<ServiceViewModel> GetServiceByIdAsync(Guid id)
         {
             Service? service = await _context.Services
+                .AsNoTracking() 
                 .Include(s => s.Appointments)
                     .ThenInclude(a => a.Customer)
                     .ThenInclude(c => c.User)
@@ -62,7 +63,7 @@ namespace AutoServiceCenter.Services.Core
                 .Include(s => s.Appointments)
                     .ThenInclude(a => a.Mechanic)
                     .ThenInclude(m => m.User)
-                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (service == null)
             {
@@ -112,6 +113,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task<ServiceCreateViewModel> GetServiceForEditAsync(Guid id)
         {
             Service? service = await _context.Services
+                .AsNoTracking() 
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
 
             if (service == null)
@@ -131,7 +133,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task UpdateServiceAsync(Guid id, ServiceCreateViewModel model)
         {
             Service? service = await _context.Services
-                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (service == null)
             {
@@ -150,7 +152,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task DeleteServiceAsync(Guid id)
         {
             Service? service = await _context.Services
-                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (service == null)
             {

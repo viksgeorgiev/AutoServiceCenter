@@ -24,11 +24,11 @@ namespace AutoServiceCenter.Services.Core
             _logger.LogInformation("Fetching appointments for page {Page}, user {UserId}, isAdminOrMechanic: {IsAdminOrMechanic}, searchTerm: {SearchTerm}", page, userId, isAdminOrMechanic, searchTerm);
 
             IQueryable<Appointment> query = _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Customer).ThenInclude(c => c.User)
                 .Include(a => a.Vehicle)
                 .Include(a => a.Service)
-                .Include(a => a.Mechanic).ThenInclude(m => m.User)
-                .Where(a => !a.IsDeleted);
+                .Include(a => a.Mechanic).ThenInclude(m => m.User);
 
             if (!isAdminOrMechanic)
             {
@@ -77,11 +77,12 @@ namespace AutoServiceCenter.Services.Core
         public async Task<AppointmentViewModel> GetAppointmentByIdAsync(Guid id, string userId, bool isAdminOrMechanic)
         {
             Appointment? appointment = await _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Customer).ThenInclude(c => c.User)
                 .Include(a => a.Vehicle)
                 .Include(a => a.Service)
                 .Include(a => a.Mechanic).ThenInclude(m => m.User)
-                .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (appointment == null || (!isAdminOrMechanic && appointment.Customer.UserId != userId))
             {
@@ -107,7 +108,9 @@ namespace AutoServiceCenter.Services.Core
         {
             try
             {
-                Customer? customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == model.CustomerId && !c.IsDeleted);
+                Customer? customer = await _context.Customers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.Id == model.CustomerId);
                 if (!isAdminOrMechanic && customer?.UserId != userId)
                 {
                     throw new UnauthorizedAccessException("User can only create appointments for themselves");
@@ -141,8 +144,9 @@ namespace AutoServiceCenter.Services.Core
         public async Task<AppointmentCreateViewModel> GetAppointmentForEditAsync(Guid id, string userId, bool isAdminOrMechanic)
         {
             Appointment? appointment = await _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Customer)
-                .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (appointment == null || (!isAdminOrMechanic && appointment.Customer.UserId != userId))
             {
@@ -169,7 +173,7 @@ namespace AutoServiceCenter.Services.Core
             {
                 Appointment? appointment = await _context.Appointments
                     .Include(a => a.Customer)
-                    .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
+                    .FirstOrDefaultAsync(a => a.Id == id);
 
                 if (appointment == null || (!isAdminOrMechanic && appointment.Customer.UserId != userId))
                 {
@@ -226,8 +230,8 @@ namespace AutoServiceCenter.Services.Core
         public async Task<List<DropdownItem>> GetCustomersAsync(bool isAdminOrMechanic, string userId)
         {
             IQueryable<Customer> query = _context.Customers
-                .Include(c => c.User)
-                .Where(c => !c.IsDeleted);
+                .AsNoTracking()
+                .Include(c => c.User);
 
             if (!isAdminOrMechanic)
             {
@@ -247,8 +251,8 @@ namespace AutoServiceCenter.Services.Core
         public async Task<List<DropdownItem>> GetVehiclesAsync(bool isAdminOrMechanic, string userId)
         {
             IQueryable<Vehicle> query = _context.Vehicles
-                .Include(v => v.Customer)
-                .Where(v => !v.IsDeleted);
+                .AsNoTracking()
+                .Include(v => v.Customer);
 
             if (!isAdminOrMechanic)
             {
@@ -267,7 +271,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task<List<DropdownItem>> GetServicesAsync()
         {
             return await _context.Services
-                .Where(s => !s.IsDeleted)
+                .AsNoTracking()
                 .Select(s => new DropdownItem
                 {
                     Value = s.Id.ToString(),
@@ -279,8 +283,8 @@ namespace AutoServiceCenter.Services.Core
         public async Task<List<DropdownItem>> GetMechanicsAsync()
         {
             return await _context.Mechanics
+                .AsNoTracking()
                 .Include(m => m.User)
-                .Where(m => !m.IsDeleted)
                 .Select(m => new DropdownItem
                 {
                     Value = m.Id.ToString(),

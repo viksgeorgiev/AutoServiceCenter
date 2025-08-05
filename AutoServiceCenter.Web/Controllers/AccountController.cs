@@ -1,15 +1,12 @@
 ﻿using AutoServiceCenter.Data;
 using AutoServiceCenter.Data.Models;
-using AutoServiceCenter.GCommon;
 using AutoServiceCenter.Services.Core.Contracts;
 using AutoServiceCenter.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace AutoServiceCenter.Web.Controllers
 {
@@ -54,15 +51,15 @@ namespace AutoServiceCenter.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user, model.Password);
+                IdentityUser user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                IdentityResult result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with email {Email}", model.Email);
 
                     // Assign User role
-                    var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                    IdentityResult roleResult = await _userManager.AddToRoleAsync(user, "User");
                     if (!roleResult.Succeeded)
                     {
                         _logger.LogError("Failed to assign User role to {Email}: {Errors}", model.Email, string.Join(", ", roleResult.Errors));
@@ -70,7 +67,7 @@ namespace AutoServiceCenter.Web.Controllers
                         return View(model);
                     }
 
-                    var customer = new Customer
+                    Customer customer = new Customer
                     {
                         Id = Guid.NewGuid(),
                         Name = model.Name,
@@ -79,7 +76,7 @@ namespace AutoServiceCenter.Web.Controllers
                         IsDeleted = false
                     };
 
-                    var vehicle = new Vehicle
+                    Vehicle vehicle = new Vehicle
                     {
                         Id = Guid.NewGuid(),
                         CustomerId = customer.Id,
@@ -108,7 +105,7 @@ namespace AutoServiceCenter.Web.Controllers
                     return LocalRedirect(returnUrl ?? Url.Content("~/"));
                 }
 
-                foreach (var error in result.Errors)
+                foreach (IdentityError error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
@@ -133,7 +130,7 @@ namespace AutoServiceCenter.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                SignInResult result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in with email {Email}", model.Email);
@@ -154,16 +151,16 @@ namespace AutoServiceCenter.Web.Controllers
         [Authorize]
         public async Task<IActionResult> Manage()
         {
-            var user = await _userManager.GetUserAsync(User);
+            IdentityUser? user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 _logger.LogWarning("User not found for manage page");
                 return NotFound();
             }
 
-            var customer = await _context.Customers
+            Customer? customer = await _context.Customers
                 .Include(c => c.Vehicles)
-                .FirstOrDefaultAsync(c => c.UserId == user.Id && !c.IsDeleted);
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (customer == null)
             {
@@ -171,9 +168,9 @@ namespace AutoServiceCenter.Web.Controllers
                 return NotFound();
             }
 
-            var vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
+            Vehicle? vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
 
-            var model = new ManageViewModel
+            ManageViewModel model = new ManageViewModel
             {
                 Name = customer.Name,
                 Email = user.Email,
@@ -198,16 +195,16 @@ namespace AutoServiceCenter.Web.Controllers
                 return View(model);
             }
 
-            var user = await _userManager.GetUserAsync(User);
+            IdentityUser? user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 _logger.LogWarning("User not found for manage update");
                 return NotFound();
             }
 
-            var customer = await _context.Customers
+            Customer? customer = await _context.Customers
                 .Include(c => c.Vehicles)
-                .FirstOrDefaultAsync(c => c.UserId == user.Id && !c.IsDeleted);
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (customer == null)
             {
@@ -219,10 +216,10 @@ namespace AutoServiceCenter.Web.Controllers
             {
                 user.Email = model.Email;
                 user.UserName = model.Email;
-                var result = await _userManager.UpdateAsync(user);
+                IdentityResult result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
-                    foreach (var error in result.Errors)
+                    foreach (IdentityError error in result.Errors)
                     {
                         ModelState.AddModelError(string.Empty, error.Description);
                     }
@@ -233,7 +230,7 @@ namespace AutoServiceCenter.Web.Controllers
             customer.Name = model.Name;
             customer.Address = model.Address;
 
-            var vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
+            Vehicle? vehicle = customer.Vehicles?.FirstOrDefault(v => !v.IsDeleted);
             if (vehicle != null)
             {
                 vehicle.Make = model.VehicleMake;
