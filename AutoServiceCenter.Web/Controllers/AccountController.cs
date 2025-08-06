@@ -267,13 +267,19 @@ namespace AutoServiceCenter.Web.Controllers
             }
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Account/Logout")]
         public async Task<IActionResult> Logout(string returnUrl = null)
         {
             await _signInManager.SignOutAsync();
-            _logger.LogInformation("User logged out.");
-            return LocalRedirect(returnUrl ?? Url.Content("~/"));
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
+            if (returnUrl != null && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
     }
 }

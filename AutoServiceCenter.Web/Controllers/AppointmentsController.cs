@@ -119,7 +119,7 @@ namespace AutoServiceCenter.Web.Controllers
                 try
                 {
                     await _appointmentService.CreateAppointmentAsync(model, userId, isAdminOrMechanic);
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Appointments", new { area = "" });
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -187,7 +187,7 @@ namespace AutoServiceCenter.Web.Controllers
                 try
                 {
                     await _appointmentService.UpdateAppointmentAsync(id, model, userId, isAdminOrMechanic);
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Appointments", new { area = "" });
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -245,7 +245,7 @@ namespace AutoServiceCenter.Web.Controllers
                 string userId = GetUserId();
 
                 await _appointmentService.DeleteAppointmentAsync(id, userId, isAdminOrMechanic);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Appointments", new { area = "" });
             }
             catch (UnauthorizedAccessException)
             {
