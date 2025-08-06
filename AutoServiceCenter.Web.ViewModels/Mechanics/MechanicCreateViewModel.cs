@@ -23,5 +23,10 @@ namespace AutoServiceCenter.Web.ViewModels.Mechanics
 
         [Range(ExperienceYearsMinValue, ExperienceYearsMaxValue)]
         public int ExperienceYears { get; set; }
+
+        [Required]  
+        [DataType(DataType.Password)]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$", ErrorMessage = "Password must be at least 8 characters long and include a lowercase letter, uppercase letter, and digit.")]
+        public string Password { get; set; } = null!;
     }
 }

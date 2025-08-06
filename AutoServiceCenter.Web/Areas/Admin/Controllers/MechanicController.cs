@@ -2,6 +2,7 @@
 using AutoServiceCenter.Web.ViewModels.Mechanics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace AutoServiceCenter.Web.Areas.Admin.Controllers
 {
@@ -45,18 +46,30 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
+                foreach (ModelError error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogWarning("Validation error: {Error}", error.ErrorMessage);
+                    ModelState.AddModelError("", error.ErrorMessage);
+                }
                 return View(model);
             }
 
             try
             {
                 await _mechanicService.CreateMechanicAsync(model);
+                _logger.LogInformation("Mechanic created successfully for email {Email}", model.Email);
                 return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation while creating mechanic: {Error}", ex.Message);
+                ModelState.AddModelError("", ex.Message);
+                return View(model);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating mechanic");
-                ModelState.AddModelError("", "An error occurred while creating the mechanic.");
+                _logger.LogError(ex, "Error creating mechanic with email {Email}", model.Email);
+                ModelState.AddModelError("", $"An error occurred while creating the mechanic: {ex.Message}");
                 return View(model);
             }
         }
@@ -92,18 +105,24 @@ namespace AutoServiceCenter.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
+                foreach (ModelError error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogWarning("Validation error: {Error}", error.ErrorMessage);
+                    ModelState.AddModelError("", error.ErrorMessage);
+                }
                 return View(model);
             }
 
             try
             {
                 await _mechanicService.UpdateMechanicAsync(id, model);
+                _logger.LogInformation("Mechanic updated successfully for ID {Id}", id);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating mechanic with ID {Id}", id);
-                ModelState.AddModelError("", "An error occurred while updating the mechanic.");
+                ModelState.AddModelError("", $"An error occurred while updating the mechanic: {ex.Message}");
                 return View(model);
             }
         }

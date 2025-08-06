@@ -11,6 +11,7 @@
 <div class="container mt-5">
 	<h1>@ViewData["Title"]</h1>
 	<form asp-action="Create" method="post">
+		@Html.AntiForgeryToken()
 		<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 		<div class="mb-3">
 			<label asp-for="CustomerId" class="form-label">Customer</label>
@@ -26,8 +27,8 @@
 			}
 			else
 			{
-				<input type="hidden" asp-for="CustomerId" />
-				<input type="text" class="form-control" value="@((ViewBag.Customers as List<DropdownItem>)?.FirstOrDefault()?.Text)" disabled />
+				<input type="hidden" asp-for="CustomerId"/>
+				<input type="text" class="form-control" value="@((ViewBag.Customers as List<DropdownItem>)?.FirstOrDefault()?.Text)" disabled/>
 			}
 			<span asp-validation-for="CustomerId" class="text-danger"></span>
 		</div>
@@ -67,10 +68,10 @@
 		<div class="mb-3">
 			<label asp-for="AppointmentDate" class="form-label">Appointment Date</label>
 			@* <input asp-for="AppointmentDate" class="form-control" type="datetime-local" /> *@
-			<input asp-for="AppointmentDate" 
-			       class="form-control" 
-			       type="datetime-local" 
-			       value="@Model.AppointmentDate.ToString("yyyy-MM-ddTHH:mm")" />
+			<input asp-for="AppointmentDate"
+			       class="form-control"
+			       type="datetime-local"
+			       value="@Model.AppointmentDate.ToString("yyyy-MM-ddTHH:mm")"/>
 			<span asp-validation-for="AppointmentDate" class="text-danger"></span>
 		</div>
 		@if (isAdminOrMechanic)

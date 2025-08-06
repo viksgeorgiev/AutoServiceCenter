@@ -11,47 +11,48 @@
     <h1>@ViewData["Title"]</h1>
     <div class="row">
         <div class="col-md-6">
-            <form asp-action="Manage" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-group">
-                    <label asp-for="Name"></label>
-                    <input asp-for="Name" class="form-control" />
-                    <span asp-validation-error-for="Name" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="Email"></label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-error-for="Email" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="Address"></label>
-                    <input asp-for="Address" class="form-control" />
-                    <span asp-validation-error-for="Address" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="VehicleMake"></label>
-                    <input asp-for="VehicleMake" class="form-control" />
-                    <span asp-validation-error-for="VehicleMake" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="VehicleModel"></label>
-                    <input asp-for="VehicleModel" class="form-control" />
-                    <span asp-validation-error-for="VehicleModel" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="VehicleYear"></label>
-                    <input asp-for="VehicleYear" class="form-control" type="number" />
-                    <span asp-validation-error-for="VehicleYear" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="VehicleLicensePlate"></label>
-                    <input asp-for="VehicleLicensePlate" class="form-control" />
-                    <span asp-validation-error-for="VehicleLicensePlate" class="text-danger"></span>
-                </div>
-                <input type="hidden" asp-for="VehicleId" />
-                <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary mt-3">Back</a>
-            </form>
+	        <form asp-action="Manage" method="post">
+		        @Html.AntiForgeryToken()
+		        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+		        <div class="form-group">
+			        <label asp-for="Name"></label>
+			        <input asp-for="Name" class="form-control"/>
+			        <span asp-validation-error-for="Name" class="text-danger"></span>
+		        </div>
+		        <div class="form-group">
+			        <label asp-for="Email"></label>
+			        <input asp-for="Email" class="form-control"/>
+			        <span asp-validation-error-for="Email" class="text-danger"></span>
+		        </div>
+		        <div class="form-group">
+			        <label asp-for="Address"></label>
+			        <input asp-for="Address" class="form-control"/>
+			        <span asp-validation-error-for="Address" class="text-danger"></span>
+		        </div>
+		        <div class="form-group">
+			        <label asp-for="VehicleMake"></label>
+			        <input asp-for="VehicleMake" class="form-control"/>
+			        <span asp-validation-error-for="VehicleMake" class="text-danger"></span>
+		        </div>
+		        <div class="form-group">
+			        <label asp-for="VehicleModel"></label>
+			        <input asp-for="VehicleModel" class="form-control"/>
+			        <span asp-validation-error-for="VehicleModel" class="text-danger"></span>
+		        </div>
+		        <div class="form-group">
+			        <label asp-for="VehicleYear"></label>
+			        <input asp-for="VehicleYear" class="form-control" type="number"/>
+			        <span asp-validation-error-for="VehicleYear" class="text-danger"></span>
+		        </div>
+		        <div class="form-group">
+			        <label asp-for="VehicleLicensePlate"></label>
+			        <input asp-for="VehicleLicensePlate" class="form-control"/>
+			        <span asp-validation-error-for="VehicleLicensePlate" class="text-danger"></span>
+		        </div>
+		        <input type="hidden" asp-for="VehicleId"/>
+		        <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+		        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary mt-3">Back</a>
+	        </form>
         </div>
     </div>
 </div>

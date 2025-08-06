@@ -2,6 +2,7 @@
 using AutoServiceCenter.Data.Common.Enums;
 using AutoServiceCenter.Data.Models;
 using AutoServiceCenter.Services.Core.Contracts;
+using AutoServiceCenter.Web.ViewModels;
 using AutoServiceCenter.Web.ViewModels.Appointment;
 using AutoServiceCenter.Web.ViewModels.Customer;
 using AutoServiceCenter.Web.ViewModels.Mechanics;
@@ -22,6 +23,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         private Mock<ILogger<MechanicService>> _mechanicLoggerMock;
         private Mock<ILogger<ServiceService>> _serviceLoggerMock;
         private Mock<UserManager<IdentityUser>> _userManagerMock;
+        private Mock<RoleManager<IdentityRole>> _roleManagerMock;
         private IAppointmentService _appointmentService;
         private ICustomerService _customerService;
         private IMechanicService _mechanicService;
@@ -33,12 +35,13 @@ namespace AutoServiceCenter.Services.Core.Tests
         private List<Mechanic> _mechanics;
         private List<Service> _services;
         private List<Appointment> _appointments;
+        private List<IdentityRole> _roles;
 
         [SetUp]
         public async Task SetUp()
         {
             // Initialize in-memory database
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
             _context = new ApplicationDbContext(options);
@@ -49,6 +52,13 @@ namespace AutoServiceCenter.Services.Core.Tests
                 new IdentityUser { Id = "user1", UserName = "john.doe@auto.com", Email = "john.doe@auto.com" },
                 new IdentityUser { Id = "user2", UserName = "jane.smith@auto.com", Email = "jane.smith@auto.com" },
                 new IdentityUser { Id = "mechanic1", UserName = "mechanic@auto.com", Email = "mechanic@auto.com" }
+            };
+
+            _roles = new List<IdentityRole>
+            {
+                new IdentityRole { Id = "role1", Name = "Administrator", NormalizedName = "ADMINISTRATOR" },
+                new IdentityRole { Id = "role2", Name = "Mechanic", NormalizedName = "MECHANIC" },
+                new IdentityRole { Id = "role3", Name = "User", NormalizedName = "USER" }
             };
 
             _customers = new List<Customer>
@@ -89,6 +99,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             };
 
             await _context.Users.AddRangeAsync(_users);
+            await _context.Roles.AddRangeAsync(_roles);
             await _context.Customers.AddRangeAsync(_customers);
             await _context.Vehicles.AddRangeAsync(_vehicles);
             await _context.Mechanics.AddRangeAsync(_mechanics);
@@ -97,13 +108,22 @@ namespace AutoServiceCenter.Services.Core.Tests
             await _context.SaveChangesAsync();
 
             // Initialize mocks
-            var store = new Mock<IUserStore<IdentityUser>>();
-            _userManagerMock = new Mock<UserManager<IdentityUser>>(store.Object, null, null, null, null, null, null, null, null);
+            Mock<IUserStore<IdentityUser>> userStore = new Mock<IUserStore<IdentityUser>>();
+            _userManagerMock = new Mock<UserManager<IdentityUser>>(userStore.Object, null, null, null, null, null, null, null, null);
             _userManagerMock.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync((string id) => _users.FirstOrDefault(u => u.Id == id));
             _userManagerMock.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((string email) => _users.FirstOrDefault(u => u.Email == email));
-            _userManagerMock.Setup(m => m.CreateAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Success);
+            _userManagerMock.Setup(m => m.CreateAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
             _userManagerMock.Setup(m => m.UpdateAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Success);
             _userManagerMock.Setup(m => m.AddToRoleAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+
+            Mock<IRoleStore<IdentityRole>> roleStore = new Mock<IRoleStore<IdentityRole>>();
+            _roleManagerMock = new Mock<RoleManager<IdentityRole>>(roleStore.Object, null, null, null, null);
+            _roleManagerMock.Setup(m => m.RoleExistsAsync(It.IsAny<string>())).ReturnsAsync((string roleName) => _roles.Any(r => r.Name == roleName));
+            _roleManagerMock.Setup(m => m.CreateAsync(It.IsAny<IdentityRole>())).ReturnsAsync((IdentityRole role) =>
+            {
+                _roles.Add(role);
+                return IdentityResult.Success;
+            });
 
             // Initialize services
             _appointmentLoggerMock = new Mock<ILogger<AppointmentService>>();
@@ -113,7 +133,7 @@ namespace AutoServiceCenter.Services.Core.Tests
 
             _appointmentService = new AppointmentService(_context, _appointmentLoggerMock.Object);
             _customerService = new CustomerService(_context, _userManagerMock.Object, _customerLoggerMock.Object);
-            _mechanicService = new MechanicService(_context, _userManagerMock.Object, _mechanicLoggerMock.Object);
+            _mechanicService = new MechanicService(_context, _userManagerMock.Object, _roleManagerMock.Object, _mechanicLoggerMock.Object);
             _serviceService = new ServiceService(_context, _serviceLoggerMock.Object);
         }
 
@@ -124,7 +144,6 @@ namespace AutoServiceCenter.Services.Core.Tests
         }
 
         #region AppointmentService Tests
-        
         [Test]
         public async Task GetAppointmentsAsync_FiltersByUserId_ForNonAdmin()
         {
@@ -134,7 +153,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             bool isAdminOrMechanic = false;
 
             // Act
-            var result = await _appointmentService.GetAppointmentsAsync(page, pageSize, userId, isAdminOrMechanic, null);
+            AppointmentIndexViewModel result = await _appointmentService.GetAppointmentsAsync(page, pageSize, userId, isAdminOrMechanic, null);
 
             // Assert
             Assert.IsNotNull(result);
@@ -152,7 +171,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             string searchTerm = "urgent";
 
             // Act
-            var result = await _appointmentService.GetAppointmentsAsync(page, pageSize, userId, isAdminOrMechanic, searchTerm);
+            AppointmentIndexViewModel result = await _appointmentService.GetAppointmentsAsync(page, pageSize, userId, isAdminOrMechanic, searchTerm);
 
             // Assert
             Assert.IsNotNull(result);
@@ -168,7 +187,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             await _context.SaveChangesAsync();
 
             // Act
-            var result = await _appointmentService.GetAppointmentsAsync(1, 10, "user1", true, null);
+            AppointmentIndexViewModel result = await _appointmentService.GetAppointmentsAsync(1, 10, "user1", true, null);
 
             // Assert
             Assert.IsNotNull(result);
@@ -180,12 +199,12 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetAppointmentByIdAsync_ReturnsAppointment_WhenAuthorized()
         {
             // Arrange
-            var appointment = _appointments[0];
+            Appointment appointment = _appointments[0];
             string userId = "user1";
             bool isAdminOrMechanic = true;
 
             // Act
-            var result = await _appointmentService.GetAppointmentByIdAsync(appointment.Id, userId, isAdminOrMechanic);
+            AppointmentViewModel result = await _appointmentService.GetAppointmentByIdAsync(appointment.Id, userId, isAdminOrMechanic);
 
             // Assert
             Assert.IsNotNull(result);
@@ -198,7 +217,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetAppointmentByIdAsync_ReturnsNull_WhenNotFound()
         {
             // Act
-            var result = await _appointmentService.GetAppointmentByIdAsync(Guid.NewGuid(), "user1", true);
+            AppointmentViewModel result = await _appointmentService.GetAppointmentByIdAsync(Guid.NewGuid(), "user1", true);
 
             // Assert
             Assert.IsNull(result);
@@ -208,12 +227,12 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetAppointmentByIdAsync_ReturnsNull_WhenUnauthorized()
         {
             // Arrange
-            var appointment = _appointments[1]; // Belongs to user2
+            Appointment appointment = _appointments[1]; // Belongs to user2
             string userId = "user1";
             bool isAdminOrMechanic = false;
 
             // Act
-            var result = await _appointmentService.GetAppointmentByIdAsync(appointment.Id, userId, isAdminOrMechanic);
+            AppointmentViewModel result = await _appointmentService.GetAppointmentByIdAsync(appointment.Id, userId, isAdminOrMechanic);
 
             // Assert
             Assert.IsNull(result);
@@ -223,7 +242,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task CreateAppointmentAsync_CreatesAppointment_WhenAuthorized()
         {
             // Arrange
-            var model = new AppointmentCreateViewModel
+            AppointmentCreateViewModel model = new AppointmentCreateViewModel
             {
                 CustomerId = _customers[0].Id,
                 VehicleId = _vehicles[0].Id,
@@ -238,7 +257,7 @@ namespace AutoServiceCenter.Services.Core.Tests
 
             // Act
             await _appointmentService.CreateAppointmentAsync(model, userId, isAdminOrMechanic);
-            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Notes == "New appointment");
+            Appointment? appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Notes == "New appointment");
 
             // Assert
             Assert.IsNotNull(appointment);
@@ -250,7 +269,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public void CreateAppointmentAsync_ThrowsUnauthorized_WhenNotAuthorized()
         {
             // Arrange
-            var model = new AppointmentCreateViewModel
+            AppointmentCreateViewModel model = new AppointmentCreateViewModel
             {
                 CustomerId = _customers[1].Id, // Belongs to user2
                 VehicleId = _vehicles[1].Id,
@@ -272,12 +291,12 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetAppointmentForEditAsync_ReturnsModel_WhenAuthorized()
         {
             // Arrange
-            var appointment = _appointments[0];
+            Appointment appointment = _appointments[0];
             string userId = "user1";
             bool isAdminOrMechanic = true;
 
             // Act
-            var result = await _appointmentService.GetAppointmentForEditAsync(appointment.Id, userId, isAdminOrMechanic);
+            AppointmentCreateViewModel result = await _appointmentService.GetAppointmentForEditAsync(appointment.Id, userId, isAdminOrMechanic);
 
             // Assert
             Assert.IsNotNull(result);
@@ -289,8 +308,8 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task UpdateAppointmentAsync_UpdatesAppointment_WhenAuthorized()
         {
             // Arrange
-            var appointment = _appointments[0];
-            var model = new AppointmentCreateViewModel
+            Appointment appointment = _appointments[0];
+            AppointmentCreateViewModel model = new AppointmentCreateViewModel
             {
                 CustomerId = _customers[0].Id,
                 VehicleId = _vehicles[0].Id,
@@ -305,7 +324,7 @@ namespace AutoServiceCenter.Services.Core.Tests
 
             // Act
             await _appointmentService.UpdateAppointmentAsync(appointment.Id, model, userId, isAdminOrMechanic);
-            var updated = await _context.Appointments.FindAsync(appointment.Id);
+            Appointment? updated = await _context.Appointments.FindAsync(appointment.Id);
 
             // Assert
             Assert.IsNotNull(updated);
@@ -317,13 +336,13 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task DeleteAppointmentAsync_SoftDeletesAppointment_WhenAuthorized()
         {
             // Arrange
-            var appointment = _appointments[0];
+            Appointment appointment = _appointments[0];
             string userId = "user1";
             bool isAdminOrMechanic = true;
 
             // Act
             await _appointmentService.DeleteAppointmentAsync(appointment.Id, userId, isAdminOrMechanic);
-            var deleted = await _context.Appointments.FindAsync(appointment.Id);
+            Appointment? deleted = await _context.Appointments.FindAsync(appointment.Id);
 
             // Assert
             Assert.IsTrue(deleted.IsDeleted);
@@ -334,7 +353,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetCustomersAsync_ReturnsAllCustomers_ForAdmin()
         {
             // Act
-            var result = await _appointmentService.GetCustomersAsync(true, "user1");
+            List<DropdownItem> result = await _appointmentService.GetCustomersAsync(true, "user1");
 
             // Assert
             Assert.AreEqual(2, result.Count); // 2 non-deleted customers
@@ -345,7 +364,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetVehiclesAsync_ReturnsUserVehicles_ForNonAdmin()
         {
             // Act
-            var result = await _appointmentService.GetVehiclesAsync(false, "user1");
+            List<DropdownItem> result = await _appointmentService.GetVehiclesAsync(false, "user1");
 
             // Assert
             Assert.AreEqual(1, result.Count); // 1 non-deleted vehicle for user1
@@ -356,7 +375,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetServicesAsync_ReturnsAllServices()
         {
             // Act
-            var result = await _appointmentService.GetServicesAsync();
+            List<DropdownItem> result = await _appointmentService.GetServicesAsync();
 
             // Assert
             Assert.AreEqual(2, result.Count); // 2 non-deleted services
@@ -367,7 +386,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetMechanicsAsync_ReturnsAllMechanics()
         {
             // Act
-            var result = await _appointmentService.GetMechanicsAsync();
+            List<DropdownItem> result = await _appointmentService.GetMechanicsAsync();
 
             // Assert
             Assert.AreEqual(2, result.Count); // 2 non-deleted mechanics
@@ -383,7 +402,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             int page = 1, pageSize = 2;
 
             // Act
-            var result = await _customerService.GetCustomersAsync(page, pageSize, null);
+            CustomerIndexViewModel result = await _customerService.GetCustomersAsync(page, pageSize, null);
 
             // Assert
             Assert.IsNotNull(result);
@@ -399,7 +418,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             string searchTerm = "john";
 
             // Act
-            var result = await _customerService.GetCustomersAsync(1, 10, searchTerm);
+            CustomerIndexViewModel result = await _customerService.GetCustomersAsync(1, 10, searchTerm);
 
             // Assert
             Assert.IsNotNull(result);
@@ -411,12 +430,12 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetCustomerByIdAsync_ReturnsCustomer_WhenAuthorized()
         {
             // Arrange
-            var customer = _customers[0];
+            Customer customer = _customers[0];
             string userId = "user1";
             bool isAdminOrMechanic = true;
 
             // Act
-            var result = await _customerService.GetCustomerByIdAsync(customer.Id, userId, isAdminOrMechanic);
+            CustomerViewModel result = await _customerService.GetCustomerByIdAsync(customer.Id, userId, isAdminOrMechanic);
 
             // Assert
             Assert.IsNotNull(result);
@@ -429,12 +448,12 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetCustomerByIdAsync_ReturnsNull_WhenUnauthorized()
         {
             // Arrange
-            var customer = _customers[1]; // Belongs to user2
+            Customer customer = _customers[1]; // Belongs to user2
             string userId = "user1";
             bool isAdminOrMechanic = false;
 
             // Act
-            var result = await _customerService.GetCustomerByIdAsync(customer.Id, userId, isAdminOrMechanic);
+            CustomerViewModel result = await _customerService.GetCustomerByIdAsync(customer.Id, userId, isAdminOrMechanic);
 
             // Assert
             Assert.IsNull(result);
@@ -444,12 +463,12 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetCustomerForEditAsync_ReturnsModel_WhenAuthorized()
         {
             // Arrange
-            var customer = _customers[0];
+            Customer customer = _customers[0];
             string userId = "user1";
             bool isAdminOrMechanic = true;
 
             // Act
-            var result = await _customerService.GetCustomerForEditAsync(customer.Id, userId, isAdminOrMechanic);
+            CustomerCreateViewModel result = await _customerService.GetCustomerForEditAsync(customer.Id, userId, isAdminOrMechanic);
 
             // Assert
             Assert.IsNotNull(result);
@@ -461,8 +480,8 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task UpdateCustomerAsync_UpdatesCustomer_WhenAuthorized()
         {
             // Arrange
-            var customer = _customers[0];
-            var model = new CustomerCreateViewModel
+            Customer customer = _customers[0];
+            CustomerCreateViewModel model = new CustomerCreateViewModel
             {
                 Id = customer.Id,
                 Name = "Updated John",
@@ -474,7 +493,7 @@ namespace AutoServiceCenter.Services.Core.Tests
 
             // Act
             await _customerService.UpdateCustomerAsync(customer.Id, model, userId, isAdminOrMechanic);
-            var updated = await _context.Customers.FindAsync(customer.Id);
+            Customer? updated = await _context.Customers.FindAsync(customer.Id);
 
             // Assert
             Assert.IsNotNull(updated);
@@ -487,8 +506,8 @@ namespace AutoServiceCenter.Services.Core.Tests
         public void UpdateCustomerAsync_ThrowsUnauthorized_WhenNotAuthorized()
         {
             // Arrange
-            var customer = _customers[1]; // Belongs to user2
-            var model = new CustomerCreateViewModel
+            Customer customer = _customers[1]; // Belongs to user2
+            CustomerCreateViewModel model = new CustomerCreateViewModel
             {
                 Id = customer.Id,
                 Name = "Updated Jane",
@@ -507,15 +526,15 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task DeleteCustomerAsync_SoftDeletesCustomerAndRelated()
         {
             // Arrange
-            var customer = _customers[0];
+            Customer customer = _customers[0];
             string userId = "user1";
             bool isAdminOrMechanic = true;
 
             // Act
             await _customerService.DeleteCustomerAsync(customer.Id, userId, isAdminOrMechanic);
-            var deletedCustomer = await _context.Customers.FindAsync(customer.Id);
-            var deletedVehicles = await _context.Vehicles.Where(v => v.CustomerId == customer.Id).ToListAsync();
-            var deletedAppointments = await _context.Appointments.Where(a => a.CustomerId == customer.Id).ToListAsync();
+            Customer? deletedCustomer = await _context.Customers.FindAsync(customer.Id);
+            List<Vehicle> deletedVehicles = await _context.Vehicles.Where(v => v.CustomerId == customer.Id).ToListAsync();
+            List<Appointment> deletedAppointments = await _context.Appointments.Where(a => a.CustomerId == customer.Id).ToListAsync();
 
             // Assert
             Assert.IsTrue(deletedCustomer.IsDeleted);
@@ -532,7 +551,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             int page = 1, pageSize = 2;
 
             // Act
-            var result = await _mechanicService.GetMechanicsAsync(page, pageSize);
+            MechanicIndexViewModel result = await _mechanicService.GetMechanicsAsync(page, pageSize);
 
             // Assert
             Assert.IsNotNull(result);
@@ -545,10 +564,10 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetMechanicByIdAsync_ReturnsMechanic()
         {
             // Arrange
-            var mechanic = _mechanics[0];
+            Mechanic mechanic = _mechanics[0];
 
             // Act
-            var result = await _mechanicService.GetMechanicByIdAsync(mechanic.Id);
+            MechanicViewModel result = await _mechanicService.GetMechanicByIdAsync(mechanic.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -561,33 +580,97 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task CreateMechanicAsync_CreatesMechanicAndUser()
         {
             // Arrange
-            var model = new MechanicCreateViewModel
+            MechanicCreateViewModel model = new MechanicCreateViewModel
             {
                 Name = "New Mechanic",
                 Email = "new.mechanic@auto.com",
                 Specialization = "Transmission",
-                ExperienceYears = 4
+                ExperienceYears = 4,
+                Password = "Test@1234" // Add password to satisfy Identity requirements
             };
 
             // Act
             await _mechanicService.CreateMechanicAsync(model);
-            var mechanic = await _context.Mechanics.FirstOrDefaultAsync(m => m.Name == "New Mechanic");
+            Mechanic? mechanic = await _context.Mechanics.FirstOrDefaultAsync(m => m.Name == "New Mechanic");
 
             // Assert
             Assert.IsNotNull(mechanic);
             Assert.AreEqual("Transmission", mechanic.Specialization);
-            _userManagerMock.Verify(m => m.CreateAsync(It.IsAny<IdentityUser>()), Times.Once());
+            Assert.IsFalse(mechanic.IsDeleted);
+            _userManagerMock.Verify(m => m.CreateAsync(It.IsAny<IdentityUser>(), "Test@1234"), Times.Once());
             _userManagerMock.Verify(m => m.AddToRoleAsync(It.IsAny<IdentityUser>(), "Mechanic"), Times.Once());
+            _roleManagerMock.Verify(m => m.RoleExistsAsync("Mechanic"), Times.Once());
+        }
+
+        [Test]
+        public async Task CreateMechanicAsync_ThrowsException_WhenEmailExists()
+        {
+            // Arrange
+            MechanicCreateViewModel model = new MechanicCreateViewModel
+            {
+                Name = "Duplicate Mechanic",
+                Email = "john.doe@auto.com", // Existing email
+                Specialization = "Transmission",
+                ExperienceYears = 4,
+                Password = "Test@1234"
+            };
+
+            // Act & Assert
+            InvalidOperationException? exception = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _mechanicService.CreateMechanicAsync(model));
+            Assert.AreEqual("A user with this email already exists.", exception.Message);
+        }
+
+        [Test]
+        public async Task CreateMechanicAsync_ThrowsException_WhenUserCreationFails()
+        {
+            // Arrange
+            MechanicCreateViewModel model = new MechanicCreateViewModel
+            {
+                Name = "New Mechanic",
+                Email = "new.mechanic@auto.com",
+                Specialization = "Transmission",
+                ExperienceYears = 4,
+                Password = "Test@1234"
+            };
+            _userManagerMock.Setup(m => m.CreateAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()))
+                .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Invalid password" }));
+
+            // Act & Assert
+            Exception? exception = Assert.ThrowsAsync<Exception>(async () =>
+                await _mechanicService.CreateMechanicAsync(model));
+            Assert.IsTrue(exception.Message.Contains("Failed to create user: Invalid password"));
+        }
+
+        [Test]
+        public async Task CreateMechanicAsync_ThrowsException_WhenRoleAssignmentFails()
+        {
+            // Arrange
+            MechanicCreateViewModel model = new MechanicCreateViewModel
+            {
+                Name = "New Mechanic",
+                Email = "new.mechanic@auto.com",
+                Specialization = "Transmission",
+                ExperienceYears = 4,
+                Password = "Test@1234"
+            };
+            _userManagerMock.Setup(m => m.AddToRoleAsync(It.IsAny<IdentityUser>(), "Mechanic"))
+                .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Role assignment failed" }));
+
+            // Act & Assert
+            Exception? exception = Assert.ThrowsAsync<Exception>(async () =>
+                await _mechanicService.CreateMechanicAsync(model));
+            Assert.IsTrue(exception.Message.Contains("Failed to assign Mechanic role: Role assignment failed"));
         }
 
         [Test]
         public async Task GetMechanicForEditAsync_ReturnsModel()
         {
             // Arrange
-            var mechanic = _mechanics[0];
+            Mechanic mechanic = _mechanics[0];
 
             // Act
-            var result = await _mechanicService.GetMechanicForEditAsync(mechanic.Id);
+            MechanicCreateViewModel result = await _mechanicService.GetMechanicForEditAsync(mechanic.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -599,25 +682,48 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task UpdateMechanicAsync_UpdatesMechanic()
         {
             // Arrange
-            var mechanic = _mechanics[0];
-            var model = new MechanicCreateViewModel
+            Mechanic mechanic = _mechanics[0];
+            MechanicCreateViewModel model = new MechanicCreateViewModel
             {
                 Id = mechanic.Id,
                 Name = "Updated Mike",
                 Email = "updated.mechanic@auto.com",
                 Specialization = "Suspension",
-                ExperienceYears = 6
+                ExperienceYears = 6,
+                Password = "Test@1234" // Not used in update, but included for consistency
             };
 
             // Act
             await _mechanicService.UpdateMechanicAsync(mechanic.Id, model);
-            var updated = await _context.Mechanics.FindAsync(mechanic.Id);
+            Mechanic? updated = await _context.Mechanics.FindAsync(mechanic.Id);
 
             // Assert
             Assert.IsNotNull(updated);
             Assert.AreEqual("Updated Mike", updated.Name);
             Assert.AreEqual("Suspension", updated.Specialization);
             _userManagerMock.Verify(m => m.UpdateAsync(It.IsAny<IdentityUser>()), Times.Once());
+        }
+
+        [Test]
+        public async Task UpdateMechanicAsync_DoesNotUpdate_WhenMechanicNotFound()
+        {
+            // Arrange
+            MechanicCreateViewModel model = new MechanicCreateViewModel
+            {
+                Id = Guid.NewGuid(),
+                Name = "Nonexistent Mechanic",
+                Email = "nonexistent@auto.com",
+                Specialization = "Transmission",
+                ExperienceYears = 4,
+                Password = "Test@1234"
+            };
+
+            // Act
+            await _mechanicService.UpdateMechanicAsync(model.Id, model);
+            Mechanic? updated = await _context.Mechanics.FindAsync(model.Id);
+
+            // Assert
+            Assert.IsNull(updated);
         }
         #endregion
 
@@ -629,7 +735,7 @@ namespace AutoServiceCenter.Services.Core.Tests
             int page = 1, pageSize = 2;
 
             // Act
-            var result = await _serviceService.GetServicesAsync(page, pageSize);
+            ServiceIndexViewModel result = await _serviceService.GetServicesAsync(page, pageSize);
 
             // Assert
             Assert.IsNotNull(result);
@@ -642,10 +748,10 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetServiceByIdAsync_ReturnsService()
         {
             // Arrange
-            var service = _services[0];
+            Service service = _services[0];
 
             // Act
-            var result = await _serviceService.GetServiceByIdAsync(service.Id);
+            ServiceViewModel result = await _serviceService.GetServiceByIdAsync(service.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -657,7 +763,7 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task CreateServiceAsync_CreatesService()
         {
             // Arrange
-            var model = new ServiceCreateViewModel
+            ServiceCreateViewModel model = new ServiceCreateViewModel
             {
                 Name = "New Service",
                 Description = "New service description",
@@ -666,7 +772,7 @@ namespace AutoServiceCenter.Services.Core.Tests
 
             // Act
             await _serviceService.CreateServiceAsync(model);
-            var service = await _context.Services.FirstOrDefaultAsync(s => s.Name == "New Service");
+            Service? service = await _context.Services.FirstOrDefaultAsync(s => s.Name == "New Service");
 
             // Assert
             Assert.IsNotNull(service);
@@ -678,10 +784,10 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task GetServiceForEditAsync_ReturnsModel()
         {
             // Arrange
-            var service = _services[0];
+            Service service = _services[0];
 
             // Act
-            var result = await _serviceService.GetServiceForEditAsync(service.Id);
+            ServiceCreateViewModel result = await _serviceService.GetServiceForEditAsync(service.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -693,8 +799,8 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task UpdateServiceAsync_UpdatesService()
         {
             // Arrange
-            var service = _services[0];
-            var model = new ServiceCreateViewModel
+            Service service = _services[0];
+            ServiceCreateViewModel model = new ServiceCreateViewModel
             {
                 Name = "Updated Oil Change",
                 Description = "Updated description",
@@ -703,7 +809,7 @@ namespace AutoServiceCenter.Services.Core.Tests
 
             // Act
             await _serviceService.UpdateServiceAsync(service.Id, model);
-            var updated = await _context.Services.FindAsync(service.Id);
+            Service? updated = await _context.Services.FindAsync(service.Id);
 
             // Assert
             Assert.IsNotNull(updated);
@@ -715,11 +821,11 @@ namespace AutoServiceCenter.Services.Core.Tests
         public async Task DeleteServiceAsync_SoftDeletesService()
         {
             // Arrange
-            var service = _services[0];
+            Service service = _services[0];
 
             // Act
             await _serviceService.DeleteServiceAsync(service.Id);
-            var deleted = await _context.Services.FindAsync(service.Id);
+            Service? deleted = await _context.Services.FindAsync(service.Id);
 
             // Assert
             Assert.IsTrue(deleted.IsDeleted);

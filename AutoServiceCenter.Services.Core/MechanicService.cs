@@ -13,12 +13,14 @@ namespace AutoServiceCenter.Services.Core
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<MechanicService> _logger;
 
-        public MechanicService(ApplicationDbContext context, UserManager<IdentityUser> userManager, ILogger<MechanicService> logger)
+        public MechanicService(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<MechanicService> logger)
         {
             _context = context;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
         }
 
@@ -27,7 +29,7 @@ namespace AutoServiceCenter.Services.Core
             _logger.LogInformation("Fetching mechanics for page {Page}", page);
 
             IQueryable<Mechanic> query = _context.Mechanics
-                .AsNoTracking() // Added for read-only operation
+                .AsNoTracking()
                 .Include(m => m.User)
                 .Include(m => m.Appointments);
 
@@ -59,7 +61,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task<MechanicViewModel> GetMechanicByIdAsync(Guid id)
         {
             Mechanic? mechanic = await _context.Mechanics
-                .AsNoTracking() 
+                .AsNoTracking()
                 .Include(m => m.User)
                 .Include(m => m.Appointments)
                     .ThenInclude(a => a.Customer)
@@ -102,24 +104,48 @@ namespace AutoServiceCenter.Services.Core
 
         public async Task CreateMechanicAsync(MechanicCreateViewModel model)
         {
-            IdentityUser? user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
+            
+            if (!await _roleManager.RoleExistsAsync("Mechanic"))
             {
-                user = new IdentityUser
+                IdentityResult roleResult = await _roleManager.CreateAsync(new IdentityRole { Name = "Mechanic", NormalizedName = "MECHANIC" });
+                if (!roleResult.Succeeded)
                 {
-                    UserName = model.Email,
-                    Email = model.Email
-                };
-                IdentityResult result = await _userManager.CreateAsync(user);
-                if (!result.Succeeded)
-                {
-                    _logger.LogError("Failed to create user for mechanic with email {Email}", model.Email);
-                    throw new Exception("Failed to create user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                    _logger.LogError("Failed to create Mechanic role: {Errors}", string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                    throw new Exception("Failed to create Mechanic role: " + string.Join(", ", roleResult.Errors.Select(e => e.Description)));
                 }
             }
 
-            await _userManager.AddToRoleAsync(user, "Mechanic");
+            
+            IdentityUser? user = await _userManager.FindByEmailAsync(model.Email);
+            if (user != null)
+            {
+                _logger.LogWarning("Attempt to create mechanic with existing email: {Email}", model.Email);
+                throw new InvalidOperationException("A user with this email already exists.");
+            }
 
+           
+            user = new IdentityUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                EmailConfirmed = true 
+            };
+            IdentityResult result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Failed to create user for mechanic with email {Email}: {Errors}", model.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+                throw new Exception("Failed to create user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            
+            result = await _userManager.AddToRoleAsync(user, "Mechanic");
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Failed to assign Mechanic role to user {Email}: {Errors}", model.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+                throw new Exception("Failed to assign Mechanic role: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            
             Mechanic mechanic = new Mechanic
             {
                 Id = Guid.NewGuid(),
@@ -138,7 +164,7 @@ namespace AutoServiceCenter.Services.Core
         public async Task<MechanicCreateViewModel> GetMechanicForEditAsync(Guid id)
         {
             Mechanic? mechanic = await _context.Mechanics
-                .AsNoTracking() 
+                .AsNoTracking()
                 .Include(m => m.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -184,7 +210,7 @@ namespace AutoServiceCenter.Services.Core
                 IdentityResult result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
-                    _logger.LogError("Failed to update user for mechanic with ID {Id}", id);
+                    _logger.LogError("Failed to update user for mechanic with ID {Id}: {Errors}", id, string.Join(", ", result.Errors.Select(e => e.Description)));
                     throw new Exception("Failed to update user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }

@@ -11,85 +11,86 @@
 <div class="container mt-5">
     <h1>@ViewData["Title"]</h1>
     <form asp-action="Edit" method="post">
-        <input type="hidden" asp-for="Id" />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="mb-3">
-            <label asp-for="CustomerId" class="form-label">Customer</label>
-            @if (isAdminOrMechanic)
-            {
-                <select asp-for="CustomerId" class="form-select">
-                    <option value="">Select Customer</option>
-                    @foreach (DropdownItem item in ViewBag.Customers as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
-                    {
-                        <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
-                    }
-                </select>
-            }
-            else
-            {
-                <input type="hidden" asp-for="CustomerId" />
-                <input type="text" class="form-control" value="@((ViewBag.Customers as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)?.FirstOrDefault()?.Text)" disabled />
-            }
-            <span asp-validation-for="CustomerId" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="VehicleId" class="form-label">Vehicle</label>
-            <select asp-for="VehicleId" class="form-select">
-                <option value="">Select Vehicle</option>
-                @foreach (DropdownItem item in ViewBag.Vehicles as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-            <span asp-validation-for="VehicleId" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="ServiceId" class="form-label">Service</label>
-            <select asp-for="ServiceId" class="form-select">
-                <option value="">Select Service</option>
-                @foreach (DropdownItem item in ViewBag.Services as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-            <span asp-validation-for="ServiceId" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="MechanicId" class="form-label">Mechanic</label>
-            <select asp-for="MechanicId" class="form-select">
-                <option value="">Select Mechanic</option>
-                @foreach (DropdownItem item in ViewBag.Mechanics as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-            <span asp-validation-for="MechanicId" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-	        <label asp-for="AppointmentDate" class="form-label">Appointment Date</label>
-	        <input asp-for="AppointmentDate" class="form-control" type="datetime-local" />
-	        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-        </div>
-        @if (isAdminOrMechanic)
-        {
-	        <div class="mb-3">
-		        <label asp-for="Status" class="form-label">Status</label>
-		        <select asp-for="Status" class="form-select">
-			        @foreach (DropdownItem item in ViewBag.Statuses as List<DropdownItem>)
-			        {
-				        <option value="@item.Value">@item.Text</option>
-			        }
-		        </select>
-		        <span asp-validation-for="Status" class="text-danger"></span>
-	        </div>
-        }
-        <div class="mb-3">
-            <label asp-for="Notes" class="form-label">Notes</label>
-            <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
-            <span asp-validation-for="Notes" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+	    @Html.AntiForgeryToken()
+	    <input type="hidden" asp-for="Id"/>
+	    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+	    <div class="mb-3">
+		    <label asp-for="CustomerId" class="form-label">Customer</label>
+		    @if (isAdminOrMechanic)
+		    {
+			    <select asp-for="CustomerId" class="form-select">
+				    <option value="">Select Customer</option>
+				    @foreach (DropdownItem item in ViewBag.Customers as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+				    {
+					    <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
+				    }
+			    </select>
+		    }
+		    else
+		    {
+			    <input type="hidden" asp-for="CustomerId"/>
+			    <input type="text" class="form-control" value="@((ViewBag.Customers as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)?.FirstOrDefault()?.Text)" disabled/>
+		    }
+		    <span asp-validation-for="CustomerId" class="text-danger"></span>
+	    </div>
+	    <div class="mb-3">
+		    <label asp-for="VehicleId" class="form-label">Vehicle</label>
+		    <select asp-for="VehicleId" class="form-select">
+			    <option value="">Select Vehicle</option>
+			    @foreach (DropdownItem item in ViewBag.Vehicles as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+			    {
+				    <option value="@item.Value">@item.Text</option>
+			    }
+		    </select>
+		    <span asp-validation-for="VehicleId" class="text-danger"></span>
+	    </div>
+	    <div class="mb-3">
+		    <label asp-for="ServiceId" class="form-label">Service</label>
+		    <select asp-for="ServiceId" class="form-select">
+			    <option value="">Select Service</option>
+			    @foreach (DropdownItem item in ViewBag.Services as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+			    {
+				    <option value="@item.Value">@item.Text</option>
+			    }
+		    </select>
+		    <span asp-validation-for="ServiceId" class="text-danger"></span>
+	    </div>
+	    <div class="mb-3">
+		    <label asp-for="MechanicId" class="form-label">Mechanic</label>
+		    <select asp-for="MechanicId" class="form-select">
+			    <option value="">Select Mechanic</option>
+			    @foreach (DropdownItem item in ViewBag.Mechanics as List<AutoServiceCenter.Web.ViewModels.DropdownItem>)
+			    {
+				    <option value="@item.Value">@item.Text</option>
+			    }
+		    </select>
+		    <span asp-validation-for="MechanicId" class="text-danger"></span>
+	    </div>
+	    <div class="mb-3">
+		    <label asp-for="AppointmentDate" class="form-label">Appointment Date</label>
+		    <input asp-for="AppointmentDate" class="form-control" type="datetime-local"/>
+		    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+	    </div>
+	    @if (isAdminOrMechanic)
+	    {
+		    <div class="mb-3">
+			    <label asp-for="Status" class="form-label">Status</label>
+			    <select asp-for="Status" class="form-select">
+				    @foreach (DropdownItem item in ViewBag.Statuses as List<DropdownItem>)
+				    {
+					    <option value="@item.Value">@item.Text</option>
+				    }
+			    </select>
+			    <span asp-validation-for="Status" class="text-danger"></span>
+		    </div>
+	    }
+	    <div class="mb-3">
+		    <label asp-for="Notes" class="form-label">Notes</label>
+		    <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+		    <span asp-validation-for="Notes" class="text-danger"></span>
+	    </div>
+	    <button type="submit" class="btn btn-primary">Save</button>
+	    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
     </form>
 </div>
 @section Scripts {
