@@ -12,8 +12,8 @@ namespace AutoServiceCenter.Web
         public static async Task Main(string[] args)
         {
             WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
-            
-            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+
+            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                                       ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services
                 .AddDbContext<ApplicationDbContext>(options =>
@@ -23,8 +23,7 @@ namespace AutoServiceCenter.Web
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services
-                .AddDefaultIdentity<IdentityUser>(options =>
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
                 {
                     options.SignIn.RequireConfirmedAccount = false;
 
@@ -35,8 +34,8 @@ namespace AutoServiceCenter.Web
                     options.Password.RequiredLength = 2;
                     options.Password.RequiredUniqueChars = 0;
                 })
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
             builder.Services.AddScoped<IAppointmentService, AppointmentService>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -50,7 +49,7 @@ namespace AutoServiceCenter.Web
             builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             WebApplication? app = builder.Build();
-            
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
