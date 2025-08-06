@@ -1,6 +1,8 @@
 
 🚗 AutoServiceCenter Web Application
-AutoServiceCenter is a web-based auto repair shop management system developed as part of a coding examination. The application is built using ASP.NET Core 8.0 with Entity Framework Core, following the MVC pattern, and includes user authentication and role management with ASP.NET Identity.
+AutoServiceCenter is a web-based auto repair shop management system developed as part of a coding examination. 
+The application is built using ASP.NET Core 8.0 with Entity Framework Core, following the MVC pattern, 
+and includes user authentication and role management with ASP.NET Identity.
 
 🧩 Features
 The system provides full functionality for customers, mechanics, and administrators:
@@ -51,32 +53,24 @@ Git
 🚀 Steps
 Clone the repository:
 
-bash
-Copy
-Edit
+
 git clone [your-repo-link]
 Open the project in Visual Studio or Rider.
 
 Configure the connection string in appsettings.json:
 
-json
-Copy
-Edit
+
 "ConnectionStrings": {
     "DefaultConnection": "Server=localhost;Database=AutoServiceCenter;Trusted_Connection=True;"
 }
 Apply migrations to create the database:
 
-bash
-Copy
-Edit
+
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 Run the application:
 
-bash
-Copy
-Edit
+
 dotnet run
 or press F5 in your IDE.
 
@@ -110,6 +104,7 @@ AutoServiceCenter.Services.Core.Tests/	Unit tests using NUnit and Moq.
 ✅ Seeded test data included for demonstration.
 
 🔐 Security Measures
+
 🧼 HTML encoding to prevent XSS.
 
 🛡️ CSRF protection using [ValidateAntiForgeryToken] and @Html.AntiForgeryToken().
@@ -119,6 +114,7 @@ AutoServiceCenter.Services.Core.Tests/	Unit tests using NUnit and Moq.
 ❗ Proper error handling with status code pages and error views.
 
 🌱 Seeding Data
+
 Seed data is located in the ServiceTests.cs file (method: SeedData). Includes:
 
 👥 12 Customers
@@ -132,6 +128,7 @@ Seed data is located in the ServiceTests.cs file (method: SeedData). Includes:
 📅 12 Appointments
 
 🧠 What Was Learned
+
 Configuring and customizing ASP.NET Identity for user roles.
 
 Writing unit tests using NUnit and Moq.
@@ -143,6 +140,7 @@ Structuring a clean architecture using dependency injection and service layers.
 Ensuring secure and user-friendly form handling with proper validation.
 
 🐞 Known Limitations
+
 💄 UI is functional but minimal; could be improved for better UX.
 
 🗓️ Some edge cases (e.g., invalid dates) may need improved validation messages.
