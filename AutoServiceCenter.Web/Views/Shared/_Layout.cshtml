@@ -7,23 +7,23 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
 	@await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-<partial name="_NavigationBar" />
-<div class="container mt-4">
-	<main role="main" class="pb-3">
-		@RenderBody()
+<body class="d-flex flex-column min-vh-100">
+	<partial name="_NavigationBar" />
+	<main class="flex-grow-1">
+		<div class="container mt-4 pb-3">
+			@RenderBody()
+		</div>
 	</main>
-</div>
-<footer class="border-top footer text-muted py-3">
-	<div class="container">
-		&copy; 2025 - Auto Service Center
-	</div>
-</footer>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
-@await RenderSectionAsync("Scripts", required: false)
+	<footer class="border-top footer text-muted py-3 mt-auto">
+		<div class="container">
+			&copy; 2025 - Auto Service Center
+		</div>
+	</footer>
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
+	@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
 
