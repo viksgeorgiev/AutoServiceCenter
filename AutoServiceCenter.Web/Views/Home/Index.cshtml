@@ -11,6 +11,13 @@
 			<h1 class="display-4">Welcome to Auto Service Center</h1>
 			<p class="lead">Your trusted partner for vehicle maintenance and repair services.</p>
 			<hr class="my-4" />
+			<div class="container">
+				<img src="https://mir-s3-cdn-cf.behance.net/project_modules/hd/3b7b527518607.560acd8ccb0e9.jpg"
+				     alt="Main Page Image"
+				     class="img-fluid mb-4"
+				     style="max-width: 700px; width: 100%; height: auto;" />
+			</div>
+			<hr class="my-4" />
 			<p>Schedule an appointment, manage your vehicles, or explore our services.</p>
 			<a class="btn btn-primary btn-lg" asp-controller="Appointments" asp-action="Index" role="button">View Appointments</a>
 			@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Administrator"))

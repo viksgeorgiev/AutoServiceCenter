@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AutoServiceCenter.Web.ViewModels.Appointment
+﻿namespace AutoServiceCenter.Web.ViewModels.Appointment
 {
     public class AppointmentIndexViewModel
     {

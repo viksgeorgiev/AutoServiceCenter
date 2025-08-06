@@ -15,7 +15,7 @@ namespace AutoServiceCenter.Web.ViewModels.Appointment
         public string MechanicName { get; set; } = null!;
         public DateTime AppointmentDate { get; set; }
         public AppointmentStatus Status { get; set; }
-        public string Notes { get; set; } = string.Empty;
+        public string Notes { get; set; } = null!;
     }
 
     public class AppointmentCreateViewModel

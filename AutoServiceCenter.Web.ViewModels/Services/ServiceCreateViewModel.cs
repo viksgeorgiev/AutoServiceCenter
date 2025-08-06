@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using AutoServiceCenter.GCommon;
+using static AutoServiceCenter.GCommon.ValidationConstants.Service;
 
 namespace AutoServiceCenter.Web.ViewModels.Services
 {
@@ -8,10 +8,10 @@ namespace AutoServiceCenter.Web.ViewModels.Services
         public Guid Id { get; set; }
 
         [Required]
-        [MaxLength(ValidationConstants.Service.NameMaxLength)]
+        [MaxLength(NameMaxLength)]
         public string Name { get; set; } = string.Empty;
 
-        [MaxLength(ValidationConstants.Service.DescriptionMaxLength)]
+        [MaxLength(DescriptionMaxLength)]
         public string? Description { get; set; }
 
         [Range(0, double.MaxValue)]
