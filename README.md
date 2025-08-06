@@ -1,44 +1,45 @@
-AutoServiceCenter Web Application
-AutoServiceCenter is a web-based auto repair shop management system developed as part of a coding examination. The application is built using ASP.NET Core 8.0 with Entity Framework Core, following the MVC architectural pattern. It includes user authentication and role-based access control using ASP.NET Identity.
 
-Features
+🚗 AutoServiceCenter Web Application
+AutoServiceCenter is a web-based auto repair shop management system developed as part of a coding examination. The application is built using ASP.NET Core 8.0 with Entity Framework Core, following the MVC pattern, and includes user authentication and role management with ASP.NET Identity.
+
+🧩 Features
 The system provides full functionality for customers, mechanics, and administrators:
 
-User Authentication � Users can register and log in with role-based access: Customer, Mechanic, or Administrator.
+👤 User Authentication – Register and log in with role-based access: Customer, Mechanic, or Administrator.
 
-Appointment Booking � Customers can book appointments for vehicle services such as oil changes or brake inspections.
+📅 Appointment Booking – Customers can book appointments for vehicle services.
 
-Mechanic and Service Management � Administrators can manage mechanics, their areas of specialization, and the services offered.
+🔧 Mechanic & Service Management – Admins can manage mechanics, their specializations, and available services.
 
-Vehicle Management � Customers can register and manage their vehicles.
+🚘 Vehicle Management – Users can register and manage vehicles.
 
-Search and Pagination � Allows users to search and filter across appointments, customers, vehicles, and services with pagination support.
+🔍 Search & Pagination – Search across appointments, vehicles, customers, and more with paginated results.
 
-Security � Includes CSRF protection, input validation, and structured error handling.
+🛡️ Security – Includes CSRF protection, input validation, and proper error handling.
 
-Technologies Used
+⚙️ Technologies Used
 Framework: ASP.NET Core 8.0
 
 Language: C#
 
-Database: SQL Server / Entity Framework Core
+Database: SQL Server / EF Core
 
-UI: Razor Views with Bootstrap 5
+UI: Razor Views, Bootstrap 5
 
 Authentication: ASP.NET Identity
 
-Testing: NUnit and Moq
+Testing: NUnit, Moq
 
 IDE: Visual Studio 2022 / JetBrains Rider
 
-Test Accounts
+🧪 Test Accounts
 Role	Email	Password
 Admin	admin@auto.com	Password123!
 Mechanic	mechanic@auto.com	Password123!
 Customer	john.doe@auto.com	Password123!
 
-How to Run the Project
-Requirements
+🏁 How to Run the Project
+🧰 Requirements
 .NET 8.0 SDK
 
 Visual Studio 2022 or JetBrains Rider
@@ -47,92 +48,105 @@ SQL Server (e.g., SQL Server Express)
 
 Git
 
-Steps
+🚀 Steps
 Clone the repository:
 
+bash
+Copy
+Edit
 git clone [your-repo-link]
-Open the project in Visual Studio or JetBrains Rider.
+Open the project in Visual Studio or Rider.
 
-Update the connection string in appsettings.json:
+Configure the connection string in appsettings.json:
 
+json
+Copy
+Edit
 "ConnectionStrings": {
     "DefaultConnection": "Server=localhost;Database=AutoServiceCenter;Trusted_Connection=True;"
 }
-Apply migrations and create the database:
+Apply migrations to create the database:
 
+bash
+Copy
+Edit
 dotnet ef migrations add InitialCreate
 dotnet ef database update
-Build and run the application:
+Run the application:
 
+bash
+Copy
+Edit
 dotnet run
-Or press F5 in your IDE.
+or press F5 in your IDE.
 
-Open your browser and navigate to https://localhost:5001.
+Access the app at:
+https://localhost:5001
 
-Project Structure
-Path	Description
+📁 Project Structure
+File / Folder	Description
 AutoServiceCenter.Data/ApplicationDbContext.cs	Configures the EF Core database context and entity sets.
-AutoServiceCenter.Data.Models/	Contains domain models (e.g., Appointment, Customer, Service).
-AutoServiceCenter.Services.Core/	Business logic services such as AppointmentService.cs.
-AutoServiceCenter.Web/Areas/Admin/Controllers/	Controllers for administrative features.
-AutoServiceCenter.Web/Views/	Razor views for the UI, including login and management pages.
+AutoServiceCenter.Data.Models/	Contains domain models such as Appointment.cs, Customer.cs, Service.cs, etc.
+AutoServiceCenter.Services.Core/	Business logic layer with services like AppointmentService.cs.
+AutoServiceCenter.Web/Areas/Admin/Controllers/	Controllers for Admin functionality (e.g., managing services and customers).
+AutoServiceCenter.Web/Views/	Razor views for UI rendering (e.g., login, appointment booking).
 AutoServiceCenter.Services.Core.Tests/	Unit tests using NUnit and Moq.
 
-Features Implemented for Coding Exam
-ASP.NET Core MVC web application with more than 5 models: Appointment, Customer, Mechanic, Service, Vehicle.
+📊 Features Implemented for Coding Exam
+✅ ASP.NET Core MVC app with 5+ models: Appointment, Customer, Mechanic, Service, Vehicle.
 
-Implementation of 5+ controllers, including administrative and mechanic-specific logic.
+✅ 5+ controllers including Admin and Mechanic areas.
 
-Use of MVC Areas (e.g., an Admin area).
+✅ Implementation of Areas (e.g., Admin).
 
-Full support for pagination and search.
+✅ Pagination and search functionality across multiple lists.
 
-ASP.NET Identity for user login and role management.
+✅ ASP.NET Identity integration with role-based access control.
 
-Unit testing of core services using NUnit and Moq.
+✅ Unit tests covering key services and logic.
 
-Data validation at both UI and model levels, including anti-forgery tokens.
+✅ Form and model validation with anti-forgery protection.
 
-Test data seeded for demonstration purposes.
+✅ Seeded test data included for demonstration.
 
-Security Measures
-HTML encoding to prevent cross-site scripting (XSS).
+🔐 Security Measures
+🧼 HTML encoding to prevent XSS.
 
-CSRF protection using [ValidateAntiForgeryToken] and @Html.AntiForgeryToken().
+🛡️ CSRF protection using [ValidateAntiForgeryToken] and @Html.AntiForgeryToken().
 
-Role-based authorization using ASP.NET Identity policies.
+🔒 Role-based access and policy authorization.
 
-Error handling implemented using status code pages and error views.
+❗ Proper error handling with status code pages and error views.
 
-Seeding Data
-Seed data is located in the ServiceTests.cs file, within the SeedData method. It populates the database with:
+🌱 Seeding Data
+Seed data is located in the ServiceTests.cs file (method: SeedData). Includes:
 
-12 Customers
+👥 12 Customers
 
-12 Vehicles
+🚗 12 Vehicles
 
-12 Mechanics with various specializations
+👨‍🔧 12 Mechanics with various specialties
 
-12 Services (e.g., Oil Change, Brake Inspection)
+🛠️ 12 Services (e.g., Oil Change, Brake Inspection)
 
-12 Appointments linking the above data
+📅 12 Appointments
 
-What Was Learned
+🧠 What Was Learned
 Configuring and customizing ASP.NET Identity for user roles.
 
-Writing effective unit tests using NUnit and Moq.
+Writing unit tests using NUnit and Moq.
 
-Implementing search, pagination, and sorting logic in a scalable way.
+Implementing search, pagination, and sorting logic.
 
-Structuring a clean and maintainable architecture using dependency injection and service layers.
+Structuring a clean architecture using dependency injection and service layers.
 
-Ensuring security and form validation across the application.
+Ensuring secure and user-friendly form handling with proper validation.
 
-Known Limitations
-The user interface is functional but minimal; it could be enhanced for better user experience.
+🐞 Known Limitations
+💄 UI is functional but minimal; could be improved for better UX.
 
-Certain edge cases (such as invalid appointment dates) may require improved validation messages.
+🗓️ Some edge cases (e.g., invalid dates) may need improved validation messages.
 
-The app currently lacks AJAX functionality and a public Web API; it is entirely server-rendered using MVC.
+🔁 Currently no AJAX/Web API — fully server-rendered MVC.
 
-Seed data is bundled within test files and could be moved to a standalone seeding script for production readiness.
+🧪 Seed data is bundled in tests; could be separated for cleaner deployment.
