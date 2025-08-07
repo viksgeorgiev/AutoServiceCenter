@@ -48,7 +48,7 @@ Git
 
 Clone the repository:
 
-git clone [your-repo-link]
+git clone (https://github.com/viksgeorgiev/AutoServiceCenter/tree/NewBranch)
 Open the project in Visual Studio or Rider.
 
 Configure the connection string in appsettings.json:
